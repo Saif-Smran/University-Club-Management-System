@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("University Club Management Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+694a32c727ed0ab584dcca9c278ae1bb4b9e8629")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8e3064b514b69cb80399b44c205842bb75acd6ec")]
 [assembly: System.Reflection.AssemblyProductAttribute("University Club Management Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("University Club Management Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
