@@ -1,0 +1,29 @@
+## Ignore Visual Studio / .NET build artifacts
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+publish/
+out/
+
+## Environment variables and secret files
+.env
+.env.*
+!.env.example
+
+## User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+
+## IDE & Tooling
+.vs/
+.idea/
+*.swp
+*~
+
+## OS specific
+.DS_Store
+Thumbs.db
