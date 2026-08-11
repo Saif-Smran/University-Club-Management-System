@@ -1,4 +1,4 @@
-## Ignore Visual Studio / .NET build artifacts
+# Visual Studio / .NET build artifacts
 [Bb]in/
 [Oo]bj/
 [Ll]og/
@@ -6,24 +6,27 @@
 publish/
 out/
 
-## Environment variables and secret files
+# Environment variables and secret files
 .env
 .env.*
 !.env.example
+appsettings.Production.json
+appsettings.Local.json
 
-## User-specific files
+# User-specific files
 *.user
 *.userosscache
 *.sln.docstates
 *.suo
 *.userprefs
 
-## IDE & Tooling
+# IDE & Tooling
 .vs/
+.vscode/
 .idea/
 *.swp
 *~
 
-## OS specific
+# OS specific
 .DS_Store
 Thumbs.db
