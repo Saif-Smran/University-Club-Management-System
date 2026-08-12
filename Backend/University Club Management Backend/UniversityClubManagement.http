@@ -1,4 +1,4 @@
-@baseUrl = https://localhost:7001
+@baseUrl = https://localhost:5000
 @contentType = application/json
 
 ### ============================================================

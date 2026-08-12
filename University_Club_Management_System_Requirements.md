@@ -149,7 +149,7 @@ Key enhancements:
 
 # Backend Task Distribution
 
-## Member 1 (Leader)
+## Member 1 (Leader) Smran
 
 - Authentication
 - JWT
@@ -157,16 +157,16 @@ Key enhancements:
 - Student Verification
 - User Management
 - Dashboard APIs
-- Database Design
-- API Documentation
+- Database Design done
+- API Documentation done
 - Complete Next.js Frontend
 
-## Member 2
+## Member 2 Araf
 
 - Club Module
 - Membership Module
 
-## Member 3
+## Member 3 Sharika
 
 - Event Module
 - Payment Module
