@@ -159,7 +159,7 @@ Key enhancements:
 - ✅ Dashboard APIs 
 - ✅ Database Design 
 - ✅ API Documentation 
-- Complete Next.js Frontend needed to complete
+- Next.js Frontend needed to complete
 
 ## Member 2 Araf
 
