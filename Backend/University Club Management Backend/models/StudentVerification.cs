@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace University_Club_Management_Backend.Models;
 
+public enum EStudentVerificationStatus
+{
+    Pending,
+    Approved,
+    Rejected
+}
+
 public class StudentVerification
 {
     [Key]
@@ -11,13 +18,15 @@ public class StudentVerification
     [Required]
     public Guid UserId { get; set; }
 
+    [MaxLength(50)]
+    public string? StudentId { get; set; }
+
     [Required]
     [MaxLength(500)]
     public required string DocumentPath { get; set; }
 
     [Required]
-    [MaxLength(20)]
-    public required string Status { get; set; } // Pending, Approved, Rejected
+    public required EStudentVerificationStatus Status { get; set; } 
 
     public DateTime? ApprovedAt { get; set; }
 

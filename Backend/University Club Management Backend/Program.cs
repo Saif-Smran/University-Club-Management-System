@@ -5,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using University_Club_Management_Backend.Data;
 using University_Club_Management_Backend.Modules.Auth;
+using University_Club_Management_Backend.Modules.ClubModule;
+using University_Club_Management_Backend.Modules.DashboardModule;
+using University_Club_Management_Backend.Modules.StudentVerificationModule;
+using University_Club_Management_Backend.Modules.UserModule;
+using University_Club_Management_Backend.Services;
 
 // Load environment variables from .env file if available
 DotNetEnv.Env.TraversePath().Load();
@@ -29,7 +34,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // Add Application Services
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IStudentVerificationService, StudentVerificationService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IClubService, ClubService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Configure JWT Authentication
 var secretKey = builder.Configuration["JWT_SECRET_KEY"]
@@ -62,6 +72,17 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Add controllers with JsonStringEnumConverter and flexible media types
 builder.Services.AddControllers(options =>
 {
@@ -84,9 +105,7 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
-
-
-// Automatically apply database migrations on startup
+// Automatically apply database migrations & seed data on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -96,14 +115,19 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Applying database migrations...");
         await db.Database.MigrateAsync();
         Console.WriteLine("Database connected and migrated successfully!");
+
+        Console.WriteLine("Seeding database accounts...");
+        await Seed.SeedDataAsync(db);
+        Console.WriteLine("Database seeding completed!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database migration error: {ex.Message}");
+        Console.WriteLine($"Database migration/seeding error: {ex.Message}");
     }
 }
 
 // Middleware
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -116,4 +140,4 @@ app.MapGet("/", () => Results.Ok(new
 
 app.MapControllers();
 
-app.Run();
+app.Run();

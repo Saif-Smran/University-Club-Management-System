@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace University_Club_Management_Backend.Models;
 
+public enum EClubStatus
+{
+    Pending,
+    Approved,
+    Rejected
+}
+
 public class Club
 {
     [Key]
@@ -25,7 +32,16 @@ public class Club
     [MaxLength(500)]
     public string? LogoUrl { get; set; }
 
-    public bool IsActive { get; set; }
+    public EClubStatus Status { get; set; } = EClubStatus.Pending;
+
+    public bool IsActive { get; set; } = false;
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
+    public DateTime? ApprovedAt { get; set; }
+
+    public Guid? ApprovedBy { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
