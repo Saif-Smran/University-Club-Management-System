@@ -202,29 +202,29 @@ Contains
 
 Contains
 
-- Name
+- Full Name
 - Email
-- Student ID
-- Department
+- Student ID (Card Number)
 - Password
-- Confirm Password
-- Upload University ID
+- Upload Student ID Card Image (Cloudinary)
 
-Accepted formats
+Note: No role selection parameter is required (defaults automatically to Student role).
 
-- PDF
+Accepted image formats
+
 - JPG
 - PNG
 - JPEG
+- WEBP
 
 After submission
 
 Display
 
 ```
-Your account has been submitted for review.
+Your account and student ID photo have been submitted for review.
 
-Please wait for admin approval.
+Please wait for admin verification approval.
 ```
 
 ---
@@ -443,14 +443,14 @@ Table
 
 - Name
 - Email
-- Student ID
-- Uploaded PDF
+- Student ID (Card Number)
+- ID Card Photo (Cloudinary Image Preview URL)
 
 Buttons
 
-- View PDF
+- View ID Photo (Enlarge/Modal)
 - Approve
-- Reject
+- Reject (with reason dialog)
 
 ---
 

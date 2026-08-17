@@ -29,22 +29,23 @@ Backend/
 - **Language**: C# 13
 - **ORM**: Entity Framework Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`)
 - **Database**: PostgreSQL
-- **Authentication**: JWT Bearer Tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`)
-- **API Tooling**: Swagger / OpenAPI, `.http` file execution
+- **Cloud Image Storage**: Cloudinary (`CloudinaryDotNet`)
+- **Authentication**: JWT Bearer Tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`), Refresh Tokens, BCrypt Hashing
+- **API Tooling**: Swagger / OpenAPI, `.http` interactive test suite
 
 ---
 
 ## 📋 Core Modules
 
-1. **Authentication & Authorization (`/api/auth`)**: JWT issuance, refresh tokens, role-based protection.
-2. **Student Verification (`/api/student-verification`)**: ID upload, image-to-PDF conversion, admin approval.
-3. **Users (`/api/users`)**: User profile management and role assignment.
-4. **Clubs (`/api/clubs`)**: Club creation, category management, searching.
-5. **Memberships (`/api/memberships`)**: Application submission, club admin approvals.
-6. **Events (`/api/events`)**: Event publishing (Free & Paid), capacity validation.
-7. **Payments (`/api/payments`)**: Payment session initialization and webhook processing.
-8. **Announcements (`/api/announcements`)**: Club bulletins and pinned announcements.
-9. **Dashboard (`/api/dashboard`)**: Tailored metrics for Students, Club Admins, and System Admins.
+1. **Authentication & Authorization (`/api/auth`)**: JWT token generation, refresh tokens, student registration (`/api/auth/register-student` without role selection), club admin registration (`/api/auth/register-club-admin`), logout.
+2. **Student Verification (`/api/student-verification`)**: Student ID number & ID photo Cloudinary upload, Admin approval/rejection queue.
+3. **Users (`/api/users`)**: User profile retrieval, profile updates, Admin user management, role modification, deletion.
+4. **Clubs (`/api/clubs`)**: Club creation application (`/api/clubs/apply`), Admin approval/rejection queue, club listing & logo Cloudinary management.
+5. **Memberships (`/api/memberships`)**: Club joining application submission, approval/rejection by Club Admins.
+6. **Events (`/api/events`)**: Free & Paid event creation, capacity tracking, registration.
+7. **Payments (`/api/payments`)**: Payment gateway session initialization and webhook callback handling.
+8. **Announcements (`/api/announcements`)**: Club announcements & pinned bulletin management.
+9. **Dashboard (`/api/dashboard`)**: Analytics statistics for Students (`/api/dashboard/student`), Club Admins (`/api/dashboard/club-admin`), and System Admins (`/api/dashboard/admin`).
 
 ---
 

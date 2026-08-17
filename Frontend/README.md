@@ -34,26 +34,26 @@ Frontend/
 - `/clubs/[id]`: Club detail page & public events
 - `/events`: Public event list & detail view
 - `/login`: User login page
-- `/register`: Student registration & ID document upload
+- `/register`: Student registration with Student ID number & ID card photo upload (Cloudinary)
 
 ### Student Portal (`/dashboard/student`)
 - `/dashboard/student`: Student overview dashboard
-- `/dashboard/student/applications`: Club membership application tracker
+- `/dashboard/student/applications`: Club membership application tracker & club creation status
 - `/dashboard/student/events`: Registered events & ticket passes
 - `/dashboard/student/payments`: Payment history & receipts
-- `/dashboard/student/profile`: Account settings & password change
+- `/dashboard/student/profile`: Account settings & profile info
 
 ### Club Admin Portal (`/dashboard/club-admin`)
-- `/dashboard/club-admin`: Club performance overview
-- `/dashboard/club-admin/members`: Member roster & pending applications
+- `/dashboard/club-admin`: Club performance overview & statistics
+- `/dashboard/club-admin/members`: Member roster & pending membership applications
 - `/dashboard/club-admin/events`: Create/edit free and paid events
 - `/dashboard/club-admin/announcements`: Post and pin club announcements
 
 ### System Admin Portal (`/dashboard/admin`)
-- `/dashboard/admin`: System-wide metrics & user statistics
-- `/dashboard/admin/verifications`: Pending student ID approval queue
-- `/dashboard/admin/users`: User management & role assignment
-- `/dashboard/admin/clubs`: Club creation & moderation
+- `/dashboard/admin`: System-wide metrics & overall statistics
+- `/dashboard/admin/verifications`: Pending student ID card verification queue
+- `/dashboard/admin/users`: User management & role modification
+- `/dashboard/admin/clubs`: Pending club creation applications & active club moderation
 
 ---
 
