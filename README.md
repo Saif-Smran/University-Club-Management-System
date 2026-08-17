@@ -31,13 +31,15 @@ The **University Club Management System (UCMS)** simplifies administrative overh
 
 ## ✨ Key Features
 
-- 🔒 **Secure Authentication**: Role-Based Access Control (RBAC) with JWT and Refresh Tokens.
-- 🪪 **Student Verification & ID Conversion**: Students register and upload proof of student identity (PDF/JPG/PNG). Image uploads are automatically converted into PDF documents before secure storage.
-- 🛡️ **Admin Approval Workflow**: Accounts remain in `Pending` state until reviewed and approved by System Admins.
-- 🎪 **Free & Paid Event Management**: Create, edit, and filter events with capacity limits and deadlines. Integrated payment session support for paid events.
-- 💳 **Payment Processing**: Integrated gateway session creation and webhook callback handlers.
-- 📢 **Announcements**: Pinned posts and category-filtered announcements for clubs.
-- 📊 **Role Dashboards**: Custom metrics for Students, Club Admins, and System Admins.
+- 🔒 **Secure Authentication**: Role-Based Access Control (RBAC) with JWT Bearer Tokens, Refresh Tokens, and Logout.
+- 🪪 **Student Identity Verification**: Students register by submitting their student ID number and uploading their student ID card photo directly to **Cloudinary CDN**.
+- 🛡️ **Admin Student Approval**: Student accounts remain in `Pending` verification state until reviewed and approved by Admins using the uploaded ID photo.
+- 🏛️ **Club Creation Application & Admin Approval**: Users can apply to form a new club with description and logo image upload. Admins review and approve/reject club creation requests.
+- 🎪 **Free & Paid Event Management**: Create, edit, and filter events with capacity limits and registration deadlines. Payment session integration for paid events.
+- 💳 **Payment Processing**: Payment session initialization and webhook callback handling.
+- 📢 **Announcements**: Pinned posts and category-filtered bulletins.
+- 📊 **Tailored Dashboard APIs**: Customized analytics endpoints for Students, Club Admins, and System Admins.
+- 🌱 **Automated Database Seeding**: Pre-configured system accounts (SystemAdmin, Admin, ClubAdmins, Verified/Pending Students) auto-seeded on startup.
 
 ---
 
@@ -47,7 +49,7 @@ The **University Club Management System (UCMS)** simplifies administrative overh
 graph TD
     Client[Client Browser / Next.js 16 Frontend] -->|HTTPS / REST API| API[ASP.NET Core 10 Web API Backend]
     API -->|Entity Framework Core| DB[(PostgreSQL Database)]
-    API -->|PDF Conversion Service| Storage[Document Storage / PDF Store]
+    API -->|Cloudinary SDK| Cloudinary[Cloudinary CDN / Image Storage]
     API -->|Payment API / Webhooks| Gateway[Payment Gateway]
 ```
 
@@ -59,8 +61,9 @@ graph TD
 - **Framework**: ASP.NET Core 10 Web API (C#)
 - **Database ORM**: Entity Framework Core 10
 - **Database**: PostgreSQL
-- **Security**: JWT Bearer Tokens, Refresh Tokens, ASP.NET Identity / Hashed Password Security
-- **Documentation**: Swagger / OpenAPI, `.http` test files
+- **Cloud Media Storage**: Cloudinary (`CloudinaryDotNet`)
+- **Security**: JWT Bearer Tokens, Refresh Tokens, BCrypt Password Hashing
+- **Documentation & Testing**: Swagger / OpenAPI, `.http` API reference file
 
 ### Frontend
 - **Framework**: Next.js 16 (App Router) + React 19
@@ -81,16 +84,16 @@ University Club Management system/
 ├── Backend/                                     # Backend architectural workspace
 │   ├── README.md                                # Backend overview documentation
 │   ├── UCMS_Backend_Requirements.md            # Detailed API specs & schema reference
-│   ├── University Club Management Backend.slnx  # .NET Solution file
 │   └── University Club Management Backend/      # ASP.NET Core 10 API Web Service project
-│       ├── .env                                 # Local environment configuration
+│       ├── .env                                 # Local environment configuration (DB & Cloudinary)
 │       ├── .gitignore                           # Backend specific git ignore
 │       ├── README.md                            # API setup & execution guide
 │       ├── Program.cs                           # Application entry point & service wiring
 │       ├── appsettings.json                     # System configuration
-│       ├── data/                                # EF Core DB Context & Migrations
+│       ├── data/                                # EF Core Context, Seed.cs & Migrations
 │       ├── models/                              # Data models & entity schemas
-│       └── Properties/                          # Launch settings & profile config
+│       ├── modules/                             # Feature modules (auth, student-verification, user, club, dashboard)
+│       └── UniversityClubManagement.http        # Interactive REST API test suite
 └── Frontend/                                    # Frontend architectural workspace
     ├── README.md                                # Frontend overview & setup guide
     └── UCMS_Fronted_Requirements.md             # UI/UX specifications & page route maps
@@ -101,18 +104,20 @@ University Club Management system/
 ## 👥 Role-Based Workflows
 
 1. **Student Workflow**:
-   - Register account & upload University ID (JPG/PNG converted to PDF).
-   - Await System Admin approval -> Log in upon approval.
-   - Browse clubs, apply for memberships, register for events, complete payments, view announcements.
+   - Register account with Student ID number & Student ID card photo upload to Cloudinary (no role parameter required).
+   - Await Admin review & approval of ID card photo.
+   - Upon approval, log in and access student dashboard, browse clubs, apply for club creation or membership, register for events, and complete payments.
 
 2. **Club Admin Workflow**:
-   - Create and manage club profiles.
+   - Apply to create a new club or be promoted upon club approval.
+   - Manage club details, description, and logo.
    - Approve or reject student membership applications.
    - Organize free or paid events, set registration limits, post club announcements.
 
 3. **System Admin Workflow**:
-   - Inspect pending student ID documents and approve/reject registrations.
-   - Manage global platform users, create clubs, and assign Club Admins.
+   - Inspect pending student verification requests with ID card photos and approve/reject.
+   - Review pending club creation applications and approve/reject (auto-promotes owner to ClubAdmin).
+   - Manage global platform users, roles, and view overall system analytics.
 
 ---
 

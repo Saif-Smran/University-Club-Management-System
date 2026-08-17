@@ -10,8 +10,9 @@ This is the primary ASP.NET Core 10 Web API service for the **University Club Ma
 - **Language**: C#
 - **ORM**: Entity Framework Core 10
 - **Database Provider**: PostgreSQL (`Npgsql.EntityFrameworkCore.PostgreSQL`)
-- **Authentication**: JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`)
-- **API Documentation**: Swagger / OpenAPI UI
+- **Cloud Storage**: Cloudinary (`CloudinaryDotNet`)
+- **Authentication**: JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`), Refresh Tokens, BCrypt
+- **API Documentation**: Swagger / OpenAPI UI & `.http` Interactive File
 
 ---
 
@@ -19,34 +20,41 @@ This is the primary ASP.NET Core 10 Web API service for the **University Club Ma
 
 ```text
 University Club Management Backend/
-├── Program.cs                                 # Services registration, middleware pipeline, DB init
+├── Program.cs                                 # Services registration, middleware pipeline, DB & Seed init
 ├── University Club Management Backend.csproj  # Package references & project properties
-├── .env                                       # Local environment variables (DB host, secret keys)
+├── .env                                       # Local environment variables (DB, JWT, Cloudinary)
 ├── .gitignore                                 # Project build artifact ignore file
 ├── appsettings.json                           # Default app settings & connection strings
-├── appsettings.Development.json               # Development environment overrides
 ├── UniversityClubManagement.http             # REST API HTTP test queries for VS Code / Visual Studio
-├── data/                                      # Entity Framework Core DB Context & Migrations
+├── data/                                      # Entity Framework Core DB Context, Seed.cs & Migrations
 │   ├── ApplicationDbContext.cs                # EF Core DbContext mapping entity sets
+│   ├── Seed.cs                                # Pre-populated test data seeding logic
 │   └── Migrations/                            # EF Core database migration snapshots
+├── Dtos/                                      # Data Transfer Objects by module
 ├── models/                                    # C# Entity Models
-│   ├── user.cs                                # User entity (Student, ClubAdmin, SystemAdmin)
+│   ├── user.cs                                # User entity (with StudentId & IdCardImageUrl)
 │   ├── StudentVerification.cs                 # Verification document & approval status entity
-│   ├── Club.cs                                # Club profile entity
+│   ├── Club.cs                                # Club entity (with Status, RejectionReason, logo URL)
 │   ├── Membership.cs                          # Club membership application entity
 │   ├── Event.cs                               # Free & Paid event entity
 │   ├── EventRegistration.cs                   # Event registration record entity
 │   ├── Payment.cs                             # Payment session & transaction record entity
 │   └── Announcement.cs                        # Announcement bulletin entity
-└── Properties/
-    └── launchSettings.json                    # Kestrel & IIS launch profiles
+├── Services/                                  # Infrastructure services
+│   └── CloudinaryService.cs                   # Cloudinary CDN image upload service
+└── modules/                                   # Feature modules (Controller + Service)
+    ├── auth/                                  # Auth service & endpoints
+    ├── student-verification/                  # Student verification queue & endpoints
+    ├── user/                                  # User management & profile endpoints
+    ├── club/                                  # Club creation application & approval endpoints
+    └── dashboard/                             # Dashboard metrics endpoints
 ```
 
 ---
 
 ## ⚙️ Environment Configuration
 
-Create or update the `.env` file in this directory with your local PostgreSQL and JWT settings:
+Create or update the `.env` file in this directory with your local PostgreSQL, JWT, and Cloudinary settings:
 
 ```env
 DB_HOST=localhost
@@ -58,6 +66,10 @@ DB_PASSWORD=your_postgres_password
 JWT_SECRET_KEY=YourSuperSecretKeyWithAtLeast32BytesLength!
 JWT_ISSUER=UCMS_Backend
 JWT_AUDIENCE=UCMS_Frontend
+
+CLOUDINARY_CLOUD_NAME=tw2hejfe
+CLOUDINARY_API_KEY=289826258969662
+CLOUDINARY_API_SECRET=91NhEL_ZV3QvVM0jG3Ff53hxe2w
 ```
 
 ---
