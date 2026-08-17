@@ -2,6 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace University_Club_Management_Backend.Models;
 
+public enum ERole
+{
+    Student,
+    ClubAdmin,
+    Admin,
+    SystemAdmin
+}
+
 public class User
 {
     [Key]
@@ -19,8 +27,15 @@ public class User
     public required string FullName { get; set; }
 
     [Required]
-    [MaxLength(20)]
-    public required string Role { get; set; } // Student, ClubAdmin, SystemAdmin
+    public ERole Role { get; set; } = ERole.Student;
+
+    [MaxLength(50)]
+    public string? StudentId { get; set; }
+
+    [MaxLength(500)]
+    public string? IdCardImageUrl { get; set; }
+
+    public bool IsVerified { get; set; } = false;
 
     [MaxLength(500)]
     public string? RefreshToken { get; set; }

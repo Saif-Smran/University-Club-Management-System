@@ -23,15 +23,60 @@
 ### ============================================================
 
 
-### 1.1 Register Student
-POST {{baseUrl}}/api/auth/register
+### 1.1 Register Student (No Role Field Required, Multipart Upload to Cloudinary)
+POST {{baseUrl}}/api/auth/register-student
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="fullName"
+
+John Doe
+------WebKitFormBoundary
+Content-Disposition: form-data; name="email"
+
+john.doe@example.com
+------WebKitFormBoundary
+Content-Disposition: form-data; name="password"
+
+Password123!
+------WebKitFormBoundary
+Content-Disposition: form-data; name="studentId"
+
+2023-1-60-001
+------WebKitFormBoundary
+Content-Disposition: form-data; name="idCardImage"; filename="student-id.jpg"
+Content-Type: image/jpeg
+
+< ./test-files/student-id.jpg
+------WebKitFormBoundary--
+
+### Expected Response
+# HTTP/1.1 201 Created
+#
+# {
+#   "success": true,
+#   "message": "Registration successful. Please await admin verification of your student ID photo.",
+#   "data": {
+#     "id": "11111111-1111-1111-1111-111111111111",
+#     "fullName": "John Doe",
+#     "email": "john.doe@example.com",
+#     "role": "Student",
+#     "studentId": "2023-1-60-001",
+#     "status": "Pending",
+#     "idCardImageUrl": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/student-verifications/id.jpg"
+#   }
+# }
+
+
+### 1.2 Register Club Admin
+POST {{baseUrl}}/api/auth/register-club-admin
 Content-Type: {{contentType}}
 
 {
-  "fullName": "John Doe",
-  "email": "john@example.com",
+  "fullName": "Tech Lead Admin",
+  "email": "clubadmin@example.com",
   "password": "Password123!",
-  "role": "Student"
+  "role": "ClubAdmin"
 }
 
 ### Expected Response
@@ -39,18 +84,18 @@ Content-Type: {{contentType}}
 #
 # {
 #   "success": true,
-#   "message": "Registration successful. Please upload your student ID.",
+#   "message": "Registration successful.",
 #   "data": {
-#     "id": "11111111-1111-1111-1111-111111111111",
-#     "fullName": "John Doe",
-#     "email": "john@example.com",
-#     "role": "Student",
-#     "status": "Pending"
+#     "id": "22222222-2222-2222-2222-222222222222",
+#     "fullName": "Tech Lead Admin",
+#     "email": "clubadmin@example.com",
+#     "role": "ClubAdmin",
+#     "status": "Approved"
 #   }
 # }
 
 
-### 1.2 Login
+### 1.3 Login
 POST {{baseUrl}}/api/auth/login
 Content-Type: {{contentType}}
 
@@ -73,13 +118,16 @@ Content-Type: {{contentType}}
 #       "id": "11111111-1111-1111-1111-111111111111",
 #       "fullName": "John Doe",
 #       "email": "john@example.com",
-#       "role": "Student"
+#       "role": "Student",
+#       "studentId": "2023-1-60-001",
+#       "isVerified": false,
+#       "verificationStatus": "Pending"
 #     }
 #   }
 # }
 
 
-### 1.3 Get Current User
+### 1.4 Get Current User (Me)
 GET {{baseUrl}}/api/auth/me
 Authorization: Bearer {{studentToken}}
 
@@ -92,12 +140,15 @@ Authorization: Bearer {{studentToken}}
 #     "id": "11111111-1111-1111-1111-111111111111",
 #     "fullName": "John Doe",
 #     "email": "john@example.com",
-#     "role": "Student"
+#     "role": "Student",
+#     "studentId": "2023-1-60-001",
+#     "isVerified": false,
+#     "verificationStatus": "Pending"
 #   }
 # }
 
 
-### 1.4 Refresh Token
+### 1.5 Refresh Token
 POST {{baseUrl}}/api/auth/refresh-token
 Content-Type: {{contentType}}
 
@@ -119,7 +170,7 @@ Content-Type: {{contentType}}
 # }
 
 
-### 1.5 Logout
+### 1.6 Logout
 POST {{baseUrl}}/api/auth/logout
 Authorization: Bearer {{studentToken}}
 
@@ -133,15 +184,19 @@ Authorization: Bearer {{studentToken}}
 
 
 ### ============================================================
-### 2. STUDENT VERIFICATION
+### 2. STUDENT VERIFICATION (Cloudinary ID Card & Admin Approval)
 ### ============================================================
 
 
-### 2.1 Upload Student ID
+### 2.1 Upload / Re-upload Student ID Card (Cloudinary Upload)
 POST {{baseUrl}}/api/student-verification/upload
 Authorization: Bearer {{studentToken}}
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
 
+------WebKitFormBoundary
+Content-Disposition: form-data; name="studentId"
+
+2023-1-60-001
 ------WebKitFormBoundary
 Content-Disposition: form-data; name="document"; filename="student-id.jpg"
 Content-Type: image/jpeg
@@ -154,18 +209,19 @@ Content-Type: image/jpeg
 #
 # {
 #   "success": true,
-#   "message": "Student ID uploaded successfully",
+#   "message": "Student ID card uploaded successfully. Pending admin approval.",
 #   "data": {
 #     "id": "88888888-8888-8888-8888-888888888888",
 #     "userId": "11111111-1111-1111-1111-111111111111",
-#     "documentPath": "/uploads/student-verifications/verification-8888.pdf",
+#     "studentId": "2023-1-60-001",
+#     "documentPath": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/student-verifications/id.jpg",
 #     "status": "Pending",
-#     "createdAt": "2026-08-11T10:00:00Z"
+#     "createdAt": "2026-08-17T10:00:00Z"
 #   }
 # }
 
 
-### 2.2 Get Pending Verifications
+### 2.2 Get Pending Student Verifications (Admin Only)
 GET {{baseUrl}}/api/student-verification/pending
 Authorization: Bearer {{adminToken}}
 
@@ -180,44 +236,43 @@ Authorization: Bearer {{adminToken}}
 #       "userId": "11111111-1111-1111-1111-111111111111",
 #       "studentName": "John Doe",
 #       "email": "john@example.com",
-#       "documentPath": "/uploads/student-verifications/verification-8888.pdf",
+#       "studentId": "2023-1-60-001",
+#       "documentPath": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/student-verifications/id.jpg",
 #       "status": "Pending",
-#       "createdAt": "2026-08-11T10:00:00Z"
+#       "createdAt": "2026-08-17T10:00:00Z"
 #     }
 #   ]
 # }
 
 
-### 2.3 Approve Student Verification
+### 2.3 Approve Student Verification (Admin Only)
 PATCH {{baseUrl}}/api/student-verification/{{verificationId}}/approve
 Authorization: Bearer {{adminToken}}
 Content-Type: {{contentType}}
 
-{
-  "approvedBy": "{{studentId}}"
-}
+{}
 
 ### Expected Response
 # HTTP/1.1 200 OK
 #
 # {
 #   "success": true,
-#   "message": "Student verification approved",
+#   "message": "Student verification approved successfully.",
 #   "data": {
 #     "id": "88888888-8888-8888-8888-888888888888",
 #     "status": "Approved",
-#     "approvedAt": "2026-08-11T11:00:00Z"
+#     "approvedAt": "2026-08-17T11:00:00Z"
 #   }
 # }
 
 
-### 2.4 Reject Student Verification
+### 2.4 Reject Student Verification (Admin Only)
 PATCH {{baseUrl}}/api/student-verification/{{verificationId}}/reject
 Authorization: Bearer {{adminToken}}
 Content-Type: {{contentType}}
 
 {
-  "rejectionReason": "The student ID document is not clear enough."
+  "rejectionReason": "The student ID document photo is blurry or unreadable."
 }
 
 ### Expected Response
@@ -225,17 +280,36 @@ Content-Type: {{contentType}}
 #
 # {
 #   "success": true,
-#   "message": "Student verification rejected",
+#   "message": "Student verification rejected.",
 #   "data": {
 #     "id": "88888888-8888-8888-8888-888888888888",
 #     "status": "Rejected",
-#     "rejectionReason": "The student ID document is not clear enough."
+#     "rejectionReason": "The student ID document photo is blurry or unreadable."
+#   }
+# }
+
+
+### 2.5 Get Student Verification Status
+GET {{baseUrl}}/api/student-verification/status
+Authorization: Bearer {{studentToken}}
+
+### Expected Response
+# HTTP/1.1 200 OK
+#
+# {
+#   "success": true,
+#   "data": {
+#     "id": "88888888-8888-8888-8888-888888888888",
+#     "userId": "11111111-1111-1111-1111-111111111111",
+#     "studentId": "2023-1-60-001",
+#     "documentPath": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/student-verifications/id.jpg",
+#     "status": "Approved"
 #   }
 # }
 
 
 ### ============================================================
-### 3. USERS
+### 3. USERS MANAGEMENT
 ### ============================================================
 
 
@@ -253,7 +327,9 @@ Authorization: Bearer {{studentToken}}
 #     "fullName": "John Doe",
 #     "email": "john@example.com",
 #     "role": "Student",
-#     "createdAt": "2026-08-11T09:00:00Z"
+#     "studentId": "2023-1-60-001",
+#     "isVerified": true,
+#     "createdAt": "2026-08-17T09:00:00Z"
 #   }
 # }
 
@@ -264,7 +340,8 @@ Authorization: Bearer {{studentToken}}
 Content-Type: {{contentType}}
 
 {
-  "fullName": "John Smith"
+  "fullName": "John Smith",
+  "studentId": "2023-1-60-001"
 }
 
 ### Expected Response
@@ -272,17 +349,19 @@ Content-Type: {{contentType}}
 #
 # {
 #   "success": true,
-#   "message": "Profile updated successfully",
+#   "message": "Profile updated successfully.",
 #   "data": {
 #     "id": "11111111-1111-1111-1111-111111111111",
 #     "fullName": "John Smith",
-#     "email": "john@example.com"
+#     "email": "john@example.com",
+#     "role": "Student",
+#     "studentId": "2023-1-60-001"
 #   }
 # }
 
 
-### 3.3 Get All Users
-GET {{baseUrl}}/api/users
+### 3.3 Get All Users (Admin Only)
+GET {{baseUrl}}/api/users?role=Student&isVerified=true&search=john
 Authorization: Bearer {{adminToken}}
 
 ### Expected Response
@@ -295,19 +374,23 @@ Authorization: Bearer {{adminToken}}
 #       "id": "11111111-1111-1111-1111-111111111111",
 #       "fullName": "John Smith",
 #       "email": "john@example.com",
-#       "role": "Student"
-#     },
-#     {
-#       "id": "99999999-9999-9999-9999-999999999999",
-#       "fullName": "Admin User",
-#       "email": "admin@example.com",
-#       "role": "SystemAdmin"
+#       "role": "Student",
+#       "studentId": "2023-1-60-001",
+#       "isVerified": true
 #     }
 #   ]
 # }
 
 
-### 3.4 Change User Role
+### 3.4 Get User By ID (Admin Only)
+GET {{baseUrl}}/api/users/{{studentId}}
+Authorization: Bearer {{adminToken}}
+
+### Expected Response
+# HTTP/1.1 200 OK
+
+
+### 3.5 Change User Role (Admin Only)
 PATCH {{baseUrl}}/api/users/{{studentId}}/role
 Authorization: Bearer {{adminToken}}
 Content-Type: {{contentType}}
@@ -321,7 +404,7 @@ Content-Type: {{contentType}}
 #
 # {
 #   "success": true,
-#   "message": "User role updated successfully",
+#   "message": "User role updated successfully.",
 #   "data": {
 #     "id": "11111111-1111-1111-1111-111111111111",
 #     "role": "ClubAdmin"
@@ -329,128 +412,8 @@ Content-Type: {{contentType}}
 # }
 
 
-### ============================================================
-### 4. CLUBS
-### ============================================================
-
-
-### 4.1 Create Club
-POST {{baseUrl}}/api/clubs
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "name": "Programming Club",
-  "description": "A club for programming and software development enthusiasts.",
-  "category": "Technology",
-  "logoUrl": "https://example.com/logo.png"
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Club created successfully",
-#   "data": {
-#     "id": "22222222-2222-2222-2222-222222222222",
-#     "name": "Programming Club",
-#     "description": "A club for programming and software development enthusiasts.",
-#     "category": "Technology",
-#     "ownerId": "11111111-1111-1111-1111-111111111111",
-#     "isActive": true,
-#     "createdAt": "2026-08-11T12:00:00Z"
-#   }
-# }
-
-
-### 4.2 Get All Clubs
-GET {{baseUrl}}/api/clubs
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": [
-#     {
-#       "id": "22222222-2222-2222-2222-222222222222",
-#       "name": "Programming Club",
-#       "category": "Technology",
-#       "isActive": true
-#     }
-#   ]
-# }
-
-
-### 4.3 Search Clubs
-GET {{baseUrl}}/api/clubs?search=programming&category=Technology
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": [
-#     {
-#       "id": "22222222-2222-2222-2222-222222222222",
-#       "name": "Programming Club",
-#       "category": "Technology"
-#     }
-#   ]
-# }
-
-
-### 4.4 Get Club By ID
-GET {{baseUrl}}/api/clubs/{{clubId}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": {
-#     "id": "22222222-2222-2222-2222-222222222222",
-#     "name": "Programming Club",
-#     "description": "A club for programming enthusiasts.",
-#     "category": "Technology",
-#     "owner": {
-#       "id": "11111111-1111-1111-1111-111111111111",
-#       "fullName": "John Smith"
-#     },
-#     "memberCount": 25,
-#     "eventCount": 5
-#   }
-# }
-
-
-### 4.5 Update Club
-PATCH {{baseUrl}}/api/clubs/{{clubId}}
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "name": "Programming & Technology Club",
-  "description": "Updated club description.",
-  "category": "Technology"
-}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Club updated successfully",
-#   "data": {
-#     "id": "22222222-2222-2222-2222-222222222222",
-#     "name": "Programming & Technology Club",
-#     "category": "Technology"
-#   }
-# }
-
-
-### 4.6 Delete Club
-DELETE {{baseUrl}}/api/clubs/{{clubId}}
+### 3.6 Delete User (Admin Only)
+DELETE {{baseUrl}}/api/users/{{studentId}}
 Authorization: Bearer {{adminToken}}
 
 ### Expected Response
@@ -458,8 +421,158 @@ Authorization: Bearer {{adminToken}}
 #
 # {
 #   "success": true,
-#   "message": "Club deleted successfully"
+#   "message": "User deleted successfully."
 # }
+
+
+### ============================================================
+### 4. CLUB CREATION APPLICATION & MANAGEMENT
+### ============================================================
+
+
+### 4.1 Apply For New Club Creation (Student / User)
+POST {{baseUrl}}/api/clubs/apply
+Authorization: Bearer {{studentToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="name"
+
+Competitive Programming Club
+------WebKitFormBoundary
+Content-Disposition: form-data; name="description"
+
+A club dedicated to algorithm challenges, LeetCode, and ICPC contests.
+------WebKitFormBoundary
+Content-Disposition: form-data; name="category"
+
+Technology
+------WebKitFormBoundary
+Content-Disposition: form-data; name="logo"; filename="club-logo.png"
+Content-Type: image/png
+
+< ./test-files/club-logo.png
+------WebKitFormBoundary--
+
+### Expected Response
+# HTTP/1.1 201 Created
+#
+# {
+#   "success": true,
+#   "message": "Club creation application submitted successfully. Pending admin approval.",
+#   "data": {
+#     "id": "22222222-2222-2222-2222-222222222222",
+#     "name": "Competitive Programming Club",
+#     "description": "A club dedicated to algorithm challenges, LeetCode, and ICPC contests.",
+#     "category": "Technology",
+#     "ownerId": "11111111-1111-1111-1111-111111111111",
+#     "logoUrl": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/club-logos/logo.png",
+#     "status": "Pending",
+#     "isActive": false,
+#     "createdAt": "2026-08-17T12:00:00Z"
+#   }
+# }
+
+
+### 4.2 Get Pending Club Applications (Admin Only)
+GET {{baseUrl}}/api/clubs/pending
+Authorization: Bearer {{adminToken}}
+
+### Expected Response
+# HTTP/1.1 200 OK
+#
+# {
+#   "success": true,
+#   "data": [
+#     {
+#       "id": "22222222-2222-2222-2222-222222222222",
+#       "name": "Competitive Programming Club",
+#       "category": "Technology",
+#       "ownerName": "John Smith",
+#       "status": "Pending",
+#       "isActive": false
+#     }
+#   ]
+# }
+
+
+### 4.3 Approve Club Creation (Admin Only)
+PATCH {{baseUrl}}/api/clubs/{{clubId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### Expected Response
+# HTTP/1.1 200 OK
+#
+# {
+#   "success": true,
+#   "message": "Club creation approved and activated successfully.",
+#   "data": {
+#     "id": "22222222-2222-2222-2222-222222222222",
+#     "name": "Competitive Programming Club",
+#     "status": "Approved",
+#     "isActive": true,
+#     "approvedAt": "2026-08-17T12:30:00Z"
+#   }
+# }
+
+
+### 4.4 Reject Club Creation (Admin Only)
+PATCH {{baseUrl}}/api/clubs/{{clubId}}/reject
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "rejectionReason": "A similar club already exists in this university."
+}
+
+### Expected Response
+# HTTP/1.1 200 OK
+#
+# {
+#   "success": true,
+#   "message": "Club application rejected.",
+#   "data": {
+#     "id": "22222222-2222-2222-2222-222222222222",
+#     "status": "Rejected",
+#     "rejectionReason": "A similar club already exists in this university."
+#   }
+# }
+
+
+### 4.5 Get Active Approved Clubs
+GET {{baseUrl}}/api/clubs?search=programming&category=Technology
+
+### Expected Response
+# HTTP/1.1 200 OK
+
+
+### 4.6 Get Club By ID
+GET {{baseUrl}}/api/clubs/{{clubId}}
+
+### Expected Response
+# HTTP/1.1 200 OK
+
+
+### 4.7 Update Club
+PATCH {{baseUrl}}/api/clubs/{{clubId}}
+Authorization: Bearer {{clubAdminToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Competitive Programming & AI Club",
+  "description": "Updated description with AI integration."
+}
+
+### Expected Response
+# HTTP/1.1 200 OK
+
+
+### 4.8 Delete Club
+DELETE {{baseUrl}}/api/clubs/{{clubId}}
+Authorization: Bearer {{adminToken}}
+
+### Expected Response
+# HTTP/1.1 200 OK
 
 
 ### ============================================================
@@ -467,42 +580,14 @@ Authorization: Bearer {{adminToken}}
 ### ============================================================
 
 
-### 5.1 Apply To Club
+### 5.1 Apply To Join Club
 POST {{baseUrl}}/api/clubs/{{clubId}}/apply
 Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Membership application submitted",
-#   "data": {
-#     "id": "33333333-3333-3333-3333-333333333333",
-#     "userId": "11111111-1111-1111-1111-111111111111",
-#     "clubId": "22222222-2222-2222-2222-222222222222",
-#     "status": "Pending",
-#     "appliedAt": "2026-08-11T12:30:00Z"
-#   }
-# }
 
 
 ### 5.2 Approve Membership
 PATCH {{baseUrl}}/api/memberships/{{membershipId}}/approve
 Authorization: Bearer {{clubAdminToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Membership approved",
-#   "data": {
-#     "id": "33333333-3333-3333-3333-333333333333",
-#     "status": "Approved",
-#     "approvedAt": "2026-08-11T13:00:00Z"
-#   }
-# }
 
 
 ### 5.3 Reject Membership
@@ -514,409 +599,18 @@ Content-Type: {{contentType}}
   "reason": "Membership requirements were not satisfied."
 }
 
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Membership rejected"
-# }
-
 
 ### 5.4 Leave Club
 POST {{baseUrl}}/api/clubs/{{clubId}}/leave
 Authorization: Bearer {{studentToken}}
 
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "You have left the club successfully"
-# }
-
 
 ### ============================================================
-### 6. EVENTS
+### 6. DASHBOARD APIs
 ### ============================================================
 
 
-### 6.1 Create Free Event
-POST {{baseUrl}}/api/events
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "clubId": "{{clubId}}",
-  "title": "Programming Workshop",
-  "description": "Introduction to ASP.NET Core.",
-  "type": "Free",
-  "price": null,
-  "capacity": 100,
-  "startTime": "2026-08-20T10:00:00Z",
-  "endTime": "2026-08-20T13:00:00Z",
-  "location": "Room 301"
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Event created successfully",
-#   "data": {
-#     "id": "44444444-4444-4444-4444-444444444444",
-#     "title": "Programming Workshop",
-#     "type": "Free",
-#     "price": null,
-#     "capacity": 100,
-#     "registeredCount": 0
-#   }
-# }
-
-
-### 6.2 Create Paid Event
-POST {{baseUrl}}/api/events
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "clubId": "{{clubId}}",
-  "title": "Advanced Web Development Workshop",
-  "description": "Advanced ASP.NET Core and Next.js.",
-  "type": "Paid",
-  "price": 500.00,
-  "capacity": 50,
-  "startTime": "2026-09-01T10:00:00Z",
-  "endTime": "2026-09-01T15:00:00Z",
-  "location": "Auditorium"
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Event created successfully",
-#   "data": {
-#     "id": "44444444-4444-4444-4444-444444444444",
-#     "title": "Advanced Web Development Workshop",
-#     "type": "Paid",
-#     "price": 500.00,
-#     "capacity": 50,
-#     "registeredCount": 0
-#   }
-# }
-
-
-### 6.3 Get All Events
-GET {{baseUrl}}/api/events
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": [
-#     {
-#       "id": "44444444-4444-4444-4444-444444444444",
-#       "title": "Programming Workshop",
-#       "type": "Free",
-#       "capacity": 100,
-#       "registeredCount": 25,
-#       "clubName": "Programming Club"
-#     }
-#   ]
-# }
-
-
-### 6.4 Get Event By ID
-GET {{baseUrl}}/api/events/{{eventId}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": {
-#     "id": "44444444-4444-4444-4444-444444444444",
-#     "title": "Programming Workshop",
-#     "description": "Introduction to ASP.NET Core.",
-#     "type": "Free",
-#     "price": null,
-#     "capacity": 100,
-#     "registeredCount": 25,
-#     "startTime": "2026-08-20T10:00:00Z",
-#     "endTime": "2026-08-20T13:00:00Z",
-#     "location": "Room 301"
-#   }
-# }
-
-
-### 6.5 Update Event
-PATCH {{baseUrl}}/api/events/{{eventId}}
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "title": "Advanced Programming Workshop",
-  "description": "Updated workshop description.",
-  "capacity": 120,
-  "location": "Room 401"
-}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Event updated successfully"
-# }
-
-
-### 6.6 Delete Event
-DELETE {{baseUrl}}/api/events/{{eventId}}
-Authorization: Bearer {{clubAdminToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Event deleted successfully"
-# }
-
-
-### 6.7 Register For Event
-POST {{baseUrl}}/api/events/{{eventId}}/register
-Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Successfully registered for event",
-#   "data": {
-#     "id": "55555555-5555-5555-5555-555555555555",
-#     "eventId": "44444444-4444-4444-4444-444444444444",
-#     "userId": "11111111-1111-1111-1111-111111111111",
-#     "registeredAt": "2026-08-11T14:00:00Z",
-#     "isCheckedIn": false
-#   }
-# }
-
-
-### ============================================================
-### 7. PAYMENTS
-### ============================================================
-
-
-### 7.1 Create Payment Session
-POST {{baseUrl}}/api/payments/create-session
-Authorization: Bearer {{studentToken}}
-Content-Type: {{contentType}}
-
-{
-  "eventId": "{{eventId}}"
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Payment session created",
-#   "data": {
-#     "paymentId": "66666666-6666-6666-6666-666666666666",
-#     "sessionId": "cs_test_123456",
-#     "amount": 500.00,
-#     "currency": "BDT",
-#     "status": "Pending",
-#     "checkoutUrl": "https://checkout.stripe.com/..."
-#   }
-# }
-
-
-### 7.2 Payment Webhook
-POST {{baseUrl}}/api/payments/webhook
-Content-Type: application/json
-
-{
-  "id": "evt_test_123456",
-  "type": "checkout.session.completed",
-  "data": {
-    "object": {
-      "id": "cs_test_123456",
-      "payment_status": "paid",
-      "amount_total": 50000,
-      "currency": "bdt"
-    }
-  }
-}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Webhook processed successfully"
-# }
-
-
-### 7.3 Get Payment
-GET {{baseUrl}}/api/payments/{{paymentId}}
-Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": {
-#     "id": "66666666-6666-6666-6666-666666666666",
-#     "eventId": "44444444-4444-4444-4444-444444444444",
-#     "amount": 500.00,
-#     "currency": "BDT",
-#     "status": "Paid",
-#     "paymentMethod": "Card",
-#     "paidAt": "2026-08-11T14:30:00Z"
-#   }
-# }
-
-
-### ============================================================
-### 8. ANNOUNCEMENTS
-### ============================================================
-
-
-### 8.1 Create Announcement
-POST {{baseUrl}}/api/announcements
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "clubId": "{{clubId}}",
-  "title": "Programming Contest Registration",
-  "content": "Registration for the upcoming programming contest is now open.",
-  "isPinned": true
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Announcement created successfully",
-#   "data": {
-#     "id": "77777777-7777-7777-7777-777777777777",
-#     "title": "Programming Contest Registration",
-#     "isPinned": true,
-#     "createdAt": "2026-08-11T15:00:00Z"
-#   }
-# }
-
-
-### 8.2 Get Announcements
-GET {{baseUrl}}/api/announcements
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": [
-#     {
-#       "id": "77777777-7777-7777-7777-777777777777",
-#       "clubId": "22222222-2222-2222-2222-222222222222",
-#       "clubName": "Programming Club",
-#       "title": "Programming Contest Registration",
-#       "content": "Registration is now open.",
-#       "isPinned": true,
-#       "createdAt": "2026-08-11T15:00:00Z"
-#     }
-#   ]
-# }
-
-
-### 8.3 Update Announcement
-PATCH {{baseUrl}}/api/announcements/{{announcementId}}
-Authorization: Bearer {{clubAdminToken}}
-Content-Type: {{contentType}}
-
-{
-  "title": "Updated Programming Contest Registration",
-  "content": "Registration deadline has been extended.",
-  "isPinned": true
-}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Announcement updated successfully"
-# }
-
-
-### 8.4 Delete Announcement
-DELETE {{baseUrl}}/api/announcements/{{announcementId}}
-Authorization: Bearer {{clubAdminToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "message": "Announcement deleted successfully"
-# }
-
-
-### ============================================================
-### 9. DASHBOARD
-### ============================================================
-
-
-### 9.1 Student Dashboard
-GET {{baseUrl}}/api/dashboard/student
-Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": {
-#     "totalMemberships": 4,
-#     "upcomingEvents": 3,
-#     "registeredEvents": 5,
-#     "pendingPayments": 1,
-#     "recentAnnouncements": 5
-#   }
-# }
-
-
-### 9.2 Club Admin Dashboard
-GET {{baseUrl}}/api/dashboard/club-admin
-Authorization: Bearer {{clubAdminToken}}
-
-### Expected Response
-# HTTP/1.1 200 OK
-#
-# {
-#   "success": true,
-#   "data": {
-#     "totalClubs": 2,
-#     "totalMembers": 120,
-#     "pendingMemberships": 8,
-#     "totalEvents": 15,
-#     "upcomingEvents": 4,
-#     "totalAnnouncements": 20
-#   }
-# }
-
-
-### 9.3 System Admin Dashboard
+### 6.1 Admin Dashboard Summary
 GET {{baseUrl}}/api/dashboard/admin
 Authorization: Bearer {{adminToken}}
 
@@ -926,123 +620,55 @@ Authorization: Bearer {{adminToken}}
 # {
 #   "success": true,
 #   "data": {
-#     "totalUsers": 1500,
-#     "totalStudents": 1400,
-#     "totalClubAdmins": 80,
-#     "totalSystemAdmins": 20,
-#     "pendingVerifications": 25,
-#     "totalClubs": 45,
-#     "totalEvents": 300,
-#     "totalPayments": 1200
+#     "totalUsers": 150,
+#     "totalStudents": 120,
+#     "pendingStudentVerifications": 5,
+#     "totalClubs": 12,
+#     "pendingClubApplications": 2,
+#     "totalEvents": 45,
+#     "totalActiveMemberships": 310
 #   }
 # }
 
 
-### ============================================================
-### 10. ERROR TESTING
-### ============================================================
-
-
-### 10.1 Invalid Login
-POST {{baseUrl}}/api/auth/login
-Content-Type: {{contentType}}
-
-{
-  "email": "wrong@example.com",
-  "password": "WrongPassword"
-}
+### 6.2 Club Admin Dashboard
+GET {{baseUrl}}/api/dashboard/club-admin
+Authorization: Bearer {{clubAdminToken}}
 
 ### Expected Response
-# HTTP/1.1 401 Unauthorized
+# HTTP/1.1 200 OK
 #
 # {
-#   "success": false,
-#   "message": "Invalid email or password"
+#   "success": true,
+#   "data": {
+#     "managedClubsCount": 2,
+#     "totalClubMembers": 75,
+#     "pendingMembershipApplications": 4,
+#     "upcomingEventsCount": 3,
+#     "totalAnnouncementsCount": 10,
+#     "managedClubs": []
+#   }
 # }
 
 
-### 10.2 Duplicate Email
-POST {{baseUrl}}/api/auth/register
-Content-Type: {{contentType}}
-
-{
-  "fullName": "John Doe",
-  "email": "john@example.com",
-  "password": "Password123!",
-  "role": "Student"
-}
-
-### Expected Response
-# HTTP/1.1 409 Conflict
-#
-# {
-#   "success": false,
-#   "message": "Email is already registered"
-# }
-
-
-### 10.3 Unauthorized Request
-GET {{baseUrl}}/api/users/profile
-
-### Expected Response
-# HTTP/1.1 401 Unauthorized
-#
-# {
-#   "success": false,
-#   "message": "Authentication required"
-# }
-
-
-### 10.4 Forbidden Request
-GET {{baseUrl}}/api/users
+### 6.3 Student Dashboard
+GET {{baseUrl}}/api/dashboard/student
 Authorization: Bearer {{studentToken}}
 
 ### Expected Response
-# HTTP/1.1 403 Forbidden
+# HTTP/1.1 200 OK
 #
 # {
-#   "success": false,
-#   "message": "You do not have permission to access this resource"
+#   "success": true,
+#   "data": {
+#     "joinedClubsCount": 3,
+#     "upcomingRegisteredEventsCount": 2,
+#     "pendingClubApplicationsCount": 1,
+#     "isStudentVerified": true,
+#     "verificationStatus": "Approved",
+#     "joinedClubs": []
+#   }
 # }
-
-
-### 10.5 Club Not Found
-GET {{baseUrl}}/api/clubs/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-
-### Expected Response
-# HTTP/1.1 404 Not Found
-#
-# {
-#   "success": false,
-#   "message": "Club not found"
-# }
-
-
-### 10.6 Event Capacity Full
-POST {{baseUrl}}/api/events/{{eventId}}/register
-Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 409 Conflict
-#
-# {
-#   "success": false,
-#   "message": "Event capacity has been reached"
-# }
-
-
-### 10.7 Duplicate Event Registration
-POST {{baseUrl}}/api/events/{{eventId}}/register
-Authorization: Bearer {{studentToken}}
-
-### Expected Response
-# HTTP/1.1 409 Conflict
-#
-# {
-#   "success": false,
-#   "message": "You are already registered for this event"
-# }
-
 
 ### ============================================================
 ### END

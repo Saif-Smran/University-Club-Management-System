@@ -151,15 +151,15 @@ Key enhancements:
 
 ## Member 1 (Leader) Smran
 
-- Authentication
-- JWT
-- Authorization
-- Student Verification
-- User Management
-- Dashboard APIs
-- Database Design done
-- API Documentation done
-- Complete Next.js Frontend
+- ✅ Authentication 
+- ✅ JWT 
+- ✅ Authorization 
+- ✅ Student Verification 
+- ✅ User Management 
+- ✅ Dashboard APIs 
+- ✅ Database Design 
+- ✅ API Documentation 
+- Complete Next.js Frontend needed to complete
 
 ## Member 2 Araf
 
