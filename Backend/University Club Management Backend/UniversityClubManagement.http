@@ -62,37 +62,10 @@ Content-Type: image/jpeg
 #     "email": "john.doe@example.com",
 #     "role": "Student",
 #     "studentId": "2023-1-60-001",
-#     "status": "Pending",
-#     "idCardImageUrl": "https://res.cloudinary.com/tw2hejfe/image/upload/v12345/student-verifications/id.jpg"
+#     "status": "Pending"
 #   }
 # }
 
-
-### 1.2 Register Club Admin
-POST {{baseUrl}}/api/auth/register-club-admin
-Content-Type: {{contentType}}
-
-{
-  "fullName": "Tech Lead Admin",
-  "email": "clubadmin@example.com",
-  "password": "Password123!",
-  "role": "ClubAdmin"
-}
-
-### Expected Response
-# HTTP/1.1 201 Created
-#
-# {
-#   "success": true,
-#   "message": "Registration successful.",
-#   "data": {
-#     "id": "22222222-2222-2222-2222-222222222222",
-#     "fullName": "Tech Lead Admin",
-#     "email": "clubadmin@example.com",
-#     "role": "ClubAdmin",
-#     "status": "Approved"
-#   }
-# }
 
 
 ### 1.3 Login

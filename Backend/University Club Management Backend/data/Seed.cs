@@ -7,169 +7,332 @@ public static class Seed
 {
     public static async Task SeedDataAsync(AppDbContext context)
     {
-        if (await context.Users.AnyAsync())
-        {
-            return; // DB already seeded
-        }
+        bool anyDataAdded = false;
 
         var passwordHashAdmin = BCrypt.Net.BCrypt.HashPassword("Admin123!");
         var passwordHashUser = BCrypt.Net.BCrypt.HashPassword("Password123!");
 
         // 1. Users
-        var systemAdmin = new User
+        var seedUsers = new[]
         {
-            Id = Guid.NewGuid(),
-            FullName = "Super Admin",
-            Email = "admin@ucms.edu",
-            PasswordHash = passwordHashAdmin,
-            Role = ERole.SystemAdmin,
-            IsVerified = true,
-            CreatedAt = DateTime.UtcNow
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Super Admin",
+                Email = "admin@ucms.edu",
+                PasswordHash = passwordHashAdmin,
+                Role = ERole.SystemAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "University Admin",
+                Email = "admin.user@ucms.edu",
+                PasswordHash = passwordHashAdmin,
+                Role = ERole.Admin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Tech Lead Admin",
+                Email = "tech.lead@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.ClubAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Robotics Lead Admin",
+                Email = "robotics.lead@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.ClubAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "John Doe",
+                Email = "john.doe@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.Student,
+                StudentId = "2023-1-60-001",
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Jane Smith",
+                Email = "jane.smith@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.Student,
+                StudentId = "2023-1-60-002",
+                IsVerified = false,
+                CreatedAt = DateTime.UtcNow
+            }
         };
 
-        var adminUser = new User
-        {
-            Id = Guid.NewGuid(),
-            FullName = "University Admin",
-            Email = "admin.user@ucms.edu",
-            PasswordHash = passwordHashAdmin,
-            Role = ERole.Admin,
-            IsVerified = true,
-            CreatedAt = DateTime.UtcNow
-        };
+        var userMap = new Dictionary<string, User>();
+        bool usersAdded = false;
 
-        var clubAdmin1 = new User
+        foreach (var seedUser in seedUsers)
         {
-            Id = Guid.NewGuid(),
-            FullName = "Tech Lead Admin",
-            Email = "tech.lead@ucms.edu",
-            PasswordHash = passwordHashUser,
-            Role = ERole.ClubAdmin,
-            IsVerified = true,
-            CreatedAt = DateTime.UtcNow
-        };
+            var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == seedUser.Email);
+            if (existingUser == null)
+            {
+                context.Users.Add(seedUser);
+                userMap[seedUser.Email] = seedUser;
+                usersAdded = true;
+            }
+            else
+            {
+                userMap[seedUser.Email] = existingUser;
+            }
+        }
 
-        var clubAdmin2 = new User
+        if (usersAdded)
         {
-            Id = Guid.NewGuid(),
-            FullName = "Robotics Lead Admin",
-            Email = "robotics.lead@ucms.edu",
-            PasswordHash = passwordHashUser,
-            Role = ERole.ClubAdmin,
-            IsVerified = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var student1 = new User
-        {
-            Id = Guid.NewGuid(),
-            FullName = "John Doe",
-            Email = "john.doe@ucms.edu",
-            PasswordHash = passwordHashUser,
-            Role = ERole.Student,
-            StudentId = "2023-1-60-001",
-            IsVerified = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var student2 = new User
-        {
-            Id = Guid.NewGuid(),
-            FullName = "Jane Smith",
-            Email = "jane.smith@ucms.edu",
-            PasswordHash = passwordHashUser,
-            Role = ERole.Student,
-            StudentId = "2023-1-60-002",
-            IsVerified = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        context.Users.AddRange(systemAdmin, adminUser, clubAdmin1, clubAdmin2, student1, student2);
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
 
         // 2. Student Verifications
-        var verification1 = new StudentVerification
+        var student1 = userMap["john.doe@ucms.edu"];
+        var student2 = userMap["jane.smith@ucms.edu"];
+        var adminUser = userMap["admin.user@ucms.edu"];
+
+        var seedVerifications = new[]
         {
-            Id = Guid.NewGuid(),
-            UserId = student1.Id,
-            StudentId = student1.StudentId,
-            DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card1.jpg",
-            Status = EStudentVerificationStatus.Approved,
-            ApprovedAt = DateTime.UtcNow,
-            ApprovedBy = adminUser.Id,
-            CreatedAt = DateTime.UtcNow
+            new StudentVerification
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                StudentId = student1.StudentId,
+                DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card1.jpg",
+                Status = EStudentVerificationStatus.Approved,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new StudentVerification
+            {
+                Id = Guid.NewGuid(),
+                UserId = student2.Id,
+                StudentId = student2.StudentId,
+                DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card2.jpg",
+                Status = EStudentVerificationStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            }
         };
 
-        var verification2 = new StudentVerification
+        bool verificationsAdded = false;
+        foreach (var seedVerification in seedVerifications)
         {
-            Id = Guid.NewGuid(),
-            UserId = student2.Id,
-            StudentId = student2.StudentId,
-            DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card2.jpg",
-            Status = EStudentVerificationStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
+            var exists = await context.StudentVerifications.AnyAsync(sv => sv.UserId == seedVerification.UserId);
+            if (!exists)
+            {
+                context.StudentVerifications.Add(seedVerification);
+                verificationsAdded = true;
+            }
+        }
 
-        context.StudentVerifications.AddRange(verification1, verification2);
+        if (verificationsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
 
         // 3. Clubs
-        var computerClub = new Club
+        var clubAdmin1 = userMap["tech.lead@ucms.edu"];
+        var clubAdmin2 = userMap["robotics.lead@ucms.edu"];
+
+        var seedClubs = new[]
         {
-            Id = Guid.NewGuid(),
-            Name = "Computer Club",
-            Description = "The official Computer and Software Development Club of UCMS.",
-            Category = "Technology",
-            OwnerId = clubAdmin1.Id,
-            LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_computer_logo.png",
-            Status = EClubStatus.Approved,
-            IsActive = true,
-            ApprovedAt = DateTime.UtcNow,
-            ApprovedBy = adminUser.Id,
-            CreatedAt = DateTime.UtcNow
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Computer Club",
+                Description = "The official Computer and Software Development Club of UCMS.",
+                Category = "Technology",
+                OwnerId = clubAdmin1.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_computer_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Robotics Club",
+                Description = "Exploring automation, hardware, and robotics engineering.",
+                Category = "Engineering",
+                OwnerId = clubAdmin2.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_robotics_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Photography Club",
+                Description = "A community for visual arts and photography enthusiasts.",
+                Category = "Arts",
+                OwnerId = student1.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_photo_logo.png",
+                Status = EClubStatus.Pending,
+                IsActive = false,
+                CreatedAt = DateTime.UtcNow
+            }
         };
 
-        var roboticsClub = new Club
-        {
-            Id = Guid.NewGuid(),
-            Name = "Robotics Club",
-            Description = "Exploring automation, hardware, and robotics engineering.",
-            Category = "Engineering",
-            OwnerId = clubAdmin2.Id,
-            LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_robotics_logo.png",
-            Status = EClubStatus.Approved,
-            IsActive = true,
-            ApprovedAt = DateTime.UtcNow,
-            ApprovedBy = adminUser.Id,
-            CreatedAt = DateTime.UtcNow
-        };
+        var clubMap = new Dictionary<string, Club>();
+        bool clubsAdded = false;
 
-        var pendingPhotographyClub = new Club
+        foreach (var seedClub in seedClubs)
         {
-            Id = Guid.NewGuid(),
-            Name = "Photography Club",
-            Description = "A community for visual arts and photography enthusiasts.",
-            Category = "Arts",
-            OwnerId = student1.Id,
-            LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_photo_logo.png",
-            Status = EClubStatus.Pending,
-            IsActive = false,
-            CreatedAt = DateTime.UtcNow
-        };
+            var existingClub = await context.Clubs.FirstOrDefaultAsync(c => c.Name == seedClub.Name);
+            if (existingClub == null)
+            {
+                context.Clubs.Add(seedClub);
+                clubMap[seedClub.Name] = seedClub;
+                clubsAdded = true;
+            }
+            else
+            {
+                clubMap[seedClub.Name] = existingClub;
+            }
+        }
 
-        context.Clubs.AddRange(computerClub, roboticsClub, pendingPhotographyClub);
+        if (clubsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
 
         // 4. Memberships
-        var member1 = new Membership
+        var computerClub = clubMap["Computer Club"];
+
+        var seedMemberships = new[]
         {
-            Id = Guid.NewGuid(),
-            UserId = student1.Id,
-            ClubId = computerClub.Id,
-            Status = "Approved",
-            AppliedAt = DateTime.UtcNow,
-            ApprovedAt = DateTime.UtcNow
+            new Membership
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                ClubId = computerClub.Id,
+                Status = "Approved",
+                AppliedAt = DateTime.UtcNow,
+                ApprovedAt = DateTime.UtcNow
+            }
         };
 
-        context.Memberships.Add(member1);
+        bool membershipsAdded = false;
+        foreach (var seedMembership in seedMemberships)
+        {
+            var exists = await context.Memberships.AnyAsync(m => m.UserId == seedMembership.UserId && m.ClubId == seedMembership.ClubId);
+            if (!exists)
+            {
+                context.Memberships.Add(seedMembership);
+                membershipsAdded = true;
+            }
+        }
 
-        await context.SaveChangesAsync();
+        if (membershipsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
+
+        // 5. Events
+        var seedEvents = new[]
+        {
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = computerClub.Id,
+                Title = "Annual Hackathon 2026",
+                Description = "Join us for 24 hours of coding, innovative projects, and exciting prizes!",
+                Type = "Free",
+                Price = 0,
+                Capacity = 100,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(7),
+                EndTime = DateTime.UtcNow.AddDays(8),
+                Location = "Main Campus Auditorium",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        bool eventsAdded = false;
+        foreach (var seedEvent in seedEvents)
+        {
+            var exists = await context.Events.AnyAsync(e => e.Title == seedEvent.Title && e.ClubId == seedEvent.ClubId);
+            if (!exists)
+            {
+                context.Events.Add(seedEvent);
+                eventsAdded = true;
+            }
+        }
+
+        if (eventsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
+
+        // 6. Announcements
+        var seedAnnouncements = new[]
+        {
+            new Announcement
+            {
+                Id = Guid.NewGuid(),
+                ClubId = computerClub.Id,
+                AuthorId = clubAdmin1.Id,
+                Title = "Welcome to Computer Club!",
+                Content = "We are thrilled to welcome all new members. Stay tuned for upcoming workshops and events!",
+                IsPinned = true,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        bool announcementsAdded = false;
+        foreach (var seedAnnouncement in seedAnnouncements)
+        {
+            var exists = await context.Announcements.AnyAsync(a => a.Title == seedAnnouncement.Title && a.ClubId == seedAnnouncement.ClubId);
+            if (!exists)
+            {
+                context.Announcements.Add(seedAnnouncement);
+                announcementsAdded = true;
+            }
+        }
+
+        if (announcementsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
+
+        // Output summary message
+        if (anyDataAdded)
+        {
+            Console.WriteLine("seed data has been add in the db");
+        }
+        else
+        {
+            Console.WriteLine("seed data is in the database");
+        }
     }
 }
+
+

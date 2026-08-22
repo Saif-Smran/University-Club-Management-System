@@ -70,6 +70,22 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue("accessToken", out var accessToken) && !string.IsNullOrWhiteSpace(accessToken))
+            {
+                context.Token = accessToken;
+            }
+            else if (context.Request.Cookies.TryGetValue("access_token", out var accessTokenAlt) && !string.IsNullOrWhiteSpace(accessTokenAlt))
+            {
+                context.Token = accessTokenAlt;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Configure CORS
@@ -77,9 +93,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
