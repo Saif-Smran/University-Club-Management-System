@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Campus Club Management API",
-    "description": "Generated from the provided .rest file. Folders are split by module (Auth, Student Verification, Users, Clubs, Memberships, Dashboard) for self-service/club-admin endpoints, with a separate top-level Admin folder holding every system-admin-only (adminToken) route across modules. Payment and Notification folders are placeholders \u2014 the source spec had variables (paymentId, announcementId) but no actual endpoints for them.",
+    "description": "Generated from the provided .rest file. Folders are split by module (Auth, Student Verification, Users, Clubs, Memberships, Dashboard, Payment, Notification) for self-service/club-admin endpoints, with a separate top-level Admin folder holding every system-admin-only (adminToken) route across modules. Payment endpoints follow the Stripe spec supplied by the user. Notification endpoints were generated (not in the original .rest file) to match the existing API conventions.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -643,13 +643,90 @@
     },
     {
       "name": "Payment",
-      "description": "PLACEHOLDER - no endpoints found in source spec.",
+      "description": "Stripe Checkout integration: create session, webhook confirm, customer payment history and lookup.",
       "item": [
         {
-          "name": "NOTE - No payment endpoints in source spec",
+          "name": "Create Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "create"
+              ]
+            },
+            "description": "Customer only. Creates a Stripe Checkout Session for a rental order. Returns a Stripe-hosted checkout URL/session id to redirect the customer to.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationId\": \"{{registrationId}}\",\n  \"amount\": 500,\n  \"currency\": \"usd\",\n  \"successUrl\": \"http://localhost:3000/payment/success\",\n  \"cancelUrl\": \"http://localhost:3000/payment/cancel\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Payment (Webhook)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "confirm"
+              ]
+            },
+            "description": "Public / Stripe webhook. Stripe calls this to confirm a completed checkout session. In production, verify the Stripe-Signature header against the raw body before trusting this payload.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_1PXXXXXXXXXXXXXXXXXXXXXX\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_XXXXXXXXXXXXXXXXXXXXXXXX\",\n      \"payment_status\": \"paid\",\n      \"metadata\": {\n        \"paymentId\": \"{{paymentId}}\"\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Payment History",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/payments",
               "host": [
@@ -660,7 +737,32 @@
                 "payments"
               ]
             },
-            "description": "Placeholder only. The provided .rest file defines a @paymentId variable but no payment endpoints. Add real routes here once you share them (e.g. GET /api/payments, POST /api/payments/initiate, GET /api/payments/{id}, webhook callback)."
+            "description": "Customer only. Returns the logged-in customer's payment history."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "{{paymentId}}"
+              ]
+            },
+            "description": "Customer only. Returns details for a single payment."
           },
           "response": []
         }
@@ -668,24 +770,233 @@
     },
     {
       "name": "Notification",
-      "description": "PLACEHOLDER - no endpoints found in source spec.",
+      "description": "Generated module (not in original spec): list/count/read/delete for a user's own notifications, plus a ClubAdmin broadcast action.",
       "item": [
         {
-          "name": "NOTE - No notification endpoints in source spec",
+          "name": "Get My Notifications",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/notifications",
+              "raw": "{{baseUrl}}/api/notifications?isRead=false&page=1&limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "notifications"
+              ],
+              "query": [
+                {
+                  "key": "isRead",
+                  "value": "false"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             },
-            "description": "Placeholder only. The provided .rest file has an @announcementId variable but no announcement/notification endpoints defined. Add real routes here once you share them."
+            "description": "Any authenticated user. Returns the caller's own notifications, newest first. Filter with isRead=true/false; paginate with page/limit."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Notification Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": "Any authenticated user. Lightweight count for a badge/bell icon, avoids pulling the full list."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{announcementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{announcementId}}"
+              ]
+            },
+            "description": "Any authenticated user. Returns a single notification; 403 if it doesn't belong to the caller."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification As Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{announcementId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{announcementId}}",
+                "read"
+              ]
+            },
+            "description": "Any authenticated user. Marks a single notification as read.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications As Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Any authenticated user. Bulk-marks every unread notification for the caller as read.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{announcementId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{announcementId}}"
+              ]
+            },
+            "description": "Any authenticated user. Removes a single notification from their own list."
+          },
+          "response": []
+        },
+        {
+          "name": "Broadcast Notification To Club Members",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{clubAdminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/broadcast",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "broadcast"
+              ]
+            },
+            "description": "ClubAdmin only. Fans a notification out to every active member of the given club. Kept here (not under Admin) since it's a club-scoped action, same pattern as Update Club / Approve Membership.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clubId\": \"{{clubId}}\",\n  \"title\": \"Workshop rescheduled\",\n  \"message\": \"Saturday's workshop moved to Room 402, same time.\",\n  \"type\": \"Announcement\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "response": []
         }
