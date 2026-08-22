@@ -34,12 +34,20 @@ public class AppDbContext : DbContext
             .HasIndex(u => u.Email)
             .IsUnique();
 
+        modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>();
+
         // =========================
         // STUDENT VERIFICATION
         // =========================
 
         modelBuilder.Entity<StudentVerification>()
             .HasKey(sv => sv.Id);
+
+        modelBuilder.Entity<StudentVerification>()
+            .Property(sv => sv.Status)
+            .HasConversion<string>();
 
         modelBuilder.Entity<StudentVerification>()
             .HasOne(sv => sv.User)
@@ -53,6 +61,10 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Club>()
             .HasKey(c => c.Id);
+
+        modelBuilder.Entity<Club>()
+            .Property(c => c.Status)
+            .HasConversion<string>();
 
         modelBuilder.Entity<Club>()
             .HasOne(c => c.Owner)

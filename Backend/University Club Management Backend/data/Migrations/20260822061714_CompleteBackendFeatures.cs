@@ -11,14 +11,21 @@ namespace University_Club_Management_Backend.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.AlterColumn<string>(
                 name: "Role",
                 table: "Users",
-                type: "integer",
+                type: "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "character varying(20)",
                 oldMaxLength: 20);
+
+            migrationBuilder.AddColumn<string>(
+                name: "IdCardImageUrl",
+                table: "Users",
+                type: "character varying(500)",
+                maxLength: 500,
+                nullable: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsVerified",
@@ -34,10 +41,10 @@ namespace University_Club_Management_Backend.Data.Migrations
                 maxLength: 50,
                 nullable: true);
 
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.AlterColumn<string>(
                 name: "Status",
                 table: "StudentVerifications",
-                type: "integer",
+                type: "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "character varying(20)",
@@ -69,17 +76,21 @@ namespace University_Club_Management_Backend.Data.Migrations
                 maxLength: 500,
                 nullable: true);
 
-            migrationBuilder.AddColumn<int>(
+            migrationBuilder.AddColumn<string>(
                 name: "Status",
                 table: "Clubs",
-                type: "integer",
+                type: "text",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "IdCardImageUrl",
+                table: "Users");
+
             migrationBuilder.DropColumn(
                 name: "IsVerified",
                 table: "Users");
@@ -114,8 +125,8 @@ namespace University_Club_Management_Backend.Data.Migrations
                 type: "character varying(20)",
                 maxLength: 20,
                 nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
+                oldClrType: typeof(string),
+                oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
@@ -123,8 +134,8 @@ namespace University_Club_Management_Backend.Data.Migrations
                 type: "character varying(20)",
                 maxLength: 20,
                 nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
+                oldClrType: typeof(string),
+                oldType: "text");
         }
     }
 }
