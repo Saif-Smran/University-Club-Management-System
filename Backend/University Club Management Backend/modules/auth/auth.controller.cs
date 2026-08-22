@@ -103,16 +103,43 @@ public class AuthController : ControllerBase
             return Unauthorized(response);
         }
 
+        if (response.Data != null)
+        {
+            SetTokenCookies(response.Data.AccessToken, response.Data.RefreshToken);
+        }
+
         return Ok(response);
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto? dto)
     {
-        var response = await _authService.RefreshTokenAsync(dto);
+        dto ??= await TryReadJsonBodyAsync<RefreshTokenDto>();
+
+        var refreshTokenStr = dto?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(refreshTokenStr))
+        {
+            Request.Cookies.TryGetValue("refreshToken", out refreshTokenStr);
+        }
+
+        if (string.IsNullOrWhiteSpace(refreshTokenStr))
+        {
+            return BadRequest(new ApiResponse<AuthResponseData>
+            {
+                Success = false,
+                Message = "Refresh token is required."
+            });
+        }
+
+        var response = await _authService.RefreshTokenAsync(new RefreshTokenDto { RefreshToken = refreshTokenStr });
         if (!response.Success)
         {
             return BadRequest(response);
+        }
+
+        if (response.Data != null)
+        {
+            SetTokenCookies(response.Data.AccessToken, response.Data.RefreshToken);
         }
 
         return Ok(response);
@@ -151,12 +178,57 @@ public class AuthController : ControllerBase
             await _authService.LogoutAsync(userId);
         }
 
+        ClearTokenCookies();
+
         return Ok(new ApiResponse<bool>
         {
             Success = true,
             Message = "Logged out successfully",
             Data = true
         });
+    }
+
+    private void SetTokenCookies(string accessToken, string refreshToken)
+    {
+        var isHttps = Request.IsHttps;
+
+        var accessTokenOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(15),
+            IsEssential = true
+        };
+
+        var refreshTokenOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            IsEssential = true
+        };
+
+        Response.Cookies.Append("accessToken", accessToken, accessTokenOptions);
+        Response.Cookies.Append("refreshToken", refreshToken, refreshTokenOptions);
+    }
+
+    private void ClearTokenCookies()
+    {
+        var isHttps = Request.IsHttps;
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1),
+            IsEssential = true
+        };
+
+        Response.Cookies.Delete("accessToken", cookieOptions);
+        Response.Cookies.Delete("refreshToken", cookieOptions);
     }
 
     private async Task<T?> TryReadJsonBodyAsync<T>() where T : class
