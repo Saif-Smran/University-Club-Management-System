@@ -12,7 +12,7 @@ using University_Club_Management_Backend.Data;
 namespace University_Club_Management_Backend.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260817014420_CompleteBackendFeatures")]
+    [Migration("20260822061714_CompleteBackendFeatures")]
     partial class CompleteBackendFeatures
     {
         /// <inheritdoc />
@@ -108,8 +108,9 @@ namespace University_Club_Management_Backend.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -314,8 +315,9 @@ namespace University_Club_Management_Backend.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("StudentId")
                         .HasMaxLength(50)
@@ -354,6 +356,10 @@ namespace University_Club_Management_Backend.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("IdCardImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
@@ -368,8 +374,9 @@ namespace University_Club_Management_Backend.Data.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiry")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("StudentId")
                         .HasMaxLength(50)
