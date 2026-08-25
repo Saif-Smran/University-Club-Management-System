@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -176,5 +177,24 @@ public class AppDbContext : DbContext
             .WithMany(u => u.Announcements)
             .HasForeignKey(a => a.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // =========================
+        // NOTIFICATION
+        // =========================
+
+        modelBuilder.Entity<Notification>()
+            .HasKey(n => n.Id);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Club)
+            .WithMany()
+            .HasForeignKey(n => n.ClubId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -23,6 +23,7 @@ Frontend/
 - **HTTP Client**: Axios
 - **Form Management & Validation**: React Hook Form + Zod
 - **Data Visualization**: Recharts (for admin dashboards & analytics)
+- **Payments Integration**: Stripe Sandbox Checkout Redirection
 
 ---
 
@@ -35,25 +36,30 @@ Frontend/
 - `/events`: Public event list & detail view
 - `/login`: User login page
 - `/register`: Student registration with Student ID number & ID card photo upload (Cloudinary)
+- `/payment/success`: Stripe payment success landing & confirmation
+- `/payment/cancel`: Stripe payment cancellation fallback page
 
-### Student Portal (`/dashboard/student`)
-- `/dashboard/student`: Student overview dashboard
-- `/dashboard/student/applications`: Club membership application tracker & club creation status
-- `/dashboard/student/events`: Registered events & ticket passes
-- `/dashboard/student/payments`: Payment history & receipts
-- `/dashboard/student/profile`: Account settings & profile info
+### Student Portal (`/dashboard`)
+- `/dashboard`: Student overview dashboard with unread notification badge
+- `/dashboard/profile`: Account settings & profile info
+- `/dashboard/my-clubs`: Joined clubs & club membership tracker
+- `/dashboard/my-events`: Registered events & ticket passes
+- `/dashboard/payments`: Payment transaction history & Stripe receipts
+- `/dashboard/notifications`: In-app notification center & read/unread toggle
 
-### Club Admin Portal (`/dashboard/club-admin`)
-- `/dashboard/club-admin`: Club performance overview & statistics
-- `/dashboard/club-admin/members`: Member roster & pending membership applications
-- `/dashboard/club-admin/events`: Create/edit free and paid events
-- `/dashboard/club-admin/announcements`: Post and pin club announcements
+### Club Admin Portal (`/club-admin`)
+- `/club-admin`: Club performance overview & statistics
+- `/club-admin/clubs`: Club details management & logo update
+- `/club-admin/memberships`: Pending membership applications & approval/rejection modal
+- `/club-admin/events`: Create/edit free and paid events
+- `/club-admin/announcements`: Post and pin club announcements
+- `/club-admin/broadcast`: Broadcast notification center to send messages to all active club members
 
-### System Admin Portal (`/dashboard/admin`)
-- `/dashboard/admin`: System-wide metrics & overall statistics
-- `/dashboard/admin/verifications`: Pending student ID card verification queue
-- `/dashboard/admin/users`: User management & role modification
-- `/dashboard/admin/clubs`: Pending club creation applications & active club moderation
+### System Admin Portal (`/admin`)
+- `/admin`: System-wide metrics & overall statistics
+- `/admin/student-approvals`: Pending student ID card verification queue (Cloudinary preview & approval)
+- `/admin/users`: User management, search & role modification
+- `/admin/clubs`: Pending club creation applications & active club moderation
 
 ---
 

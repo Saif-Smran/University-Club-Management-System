@@ -24,6 +24,9 @@ public class Membership
 
     public DateTime? LeftAt { get; set; }
 
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
+
     // Navigation properties
 
     [ForeignKey(nameof(UserId))]

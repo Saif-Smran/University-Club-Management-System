@@ -7,6 +7,9 @@ using University_Club_Management_Backend.Data;
 using University_Club_Management_Backend.Modules.Auth;
 using University_Club_Management_Backend.Modules.ClubModule;
 using University_Club_Management_Backend.Modules.DashboardModule;
+using University_Club_Management_Backend.Modules.MembershipModule;
+using University_Club_Management_Backend.Modules.NotificationModule;
+using University_Club_Management_Backend.Modules.PaymentModule;
 using University_Club_Management_Backend.Modules.StudentVerificationModule;
 using University_Club_Management_Backend.Modules.UserModule;
 using University_Club_Management_Backend.Services;
@@ -40,6 +43,9 @@ builder.Services.AddScoped<IStudentVerificationService, StudentVerificationServi
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IClubService, ClubService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IMembershipService, MembershipService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Configure JWT Authentication
 var secretKey = builder.Configuration["JWT_SECRET_KEY"]

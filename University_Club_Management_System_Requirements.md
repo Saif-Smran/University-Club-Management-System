@@ -11,9 +11,9 @@
 
 # Project Overview
 
-The University Club Management System (UCMS) is a full-stack web application for managing university clubs, student memberships, events, announcements, and paid event registrations.
+The University Club Management System (UCMS) is a full-stack web application for managing university clubs, student memberships, events, announcements, notifications, and paid event registrations.
 
-Key enhancements:
+Key features:
 
 - Student registration requires **Admin approval**.
 - Students register with their **Student ID Number** and **Student ID Card photo** (no role selection required).
@@ -21,8 +21,9 @@ Key enhancements:
 - Account verification status is set to `Pending` until an Admin reviews and approves the ID card photo.
 - Users can apply to create a new **Club**; Admins review and approve/reject club creation requests.
 - Clubs can create **free or paid events**.
-- Paid events require successful payment before registration is confirmed.
-- Club admins manage memberships, events, and announcements.
+- Paid events integrate with **Stripe Sandbox** for secure checkout session creation and webhook confirmation.
+- Members receive **In-App Notifications** for club broadcasts, system events, and status updates.
+- Club admins manage memberships, events, announcements, and member broadcasts.
 - System admins manage users, clubs, student verifications, and platform moderation.
 
 ---
@@ -36,26 +37,29 @@ Key enhancements:
 - Wait for admin ID photo verification & approval
 - Login after verification
 - Apply to create a new club
-- Browse clubs
-- Apply for membership
-- Register for free or paid events
+- Browse active approved clubs
+- Apply for club membership & leave club
+- Register for free or paid events with Stripe Checkout
+- Receive in-app notifications and mark as read
 - View announcements
-- Manage profile
+- Manage profile & payment history
 
 ## Club Admin
 
 - Apply for club creation and manage active clubs
-- Approve memberships
+- Approve or reject membership requests
 - Manage members
 - Create/Edit/Delete events
 - Create announcements
-- View event registrations
+- Broadcast notifications to all active club members
+- View event registrations & payment records
 
 ## System Admin
 
 - Review and approve or reject new student registrations using ID card photos
-- Review pending club creation applications and approve/reject
+- Review pending club creation applications and approve/reject (auto-promotes owner to ClubAdmin)
 - Manage users & user roles
+- Delete users & clubs
 - View dashboard metrics & platform analytics
 
 ---
@@ -66,53 +70,60 @@ Key enhancements:
 
 - Student Registration (`/api/auth/register-student` - no role field needed)
 - Club Admin Registration (`/api/auth/register-club-admin`)
-- Login
-- Logout
-- JWT Authentication
-- Refresh Tokens
-- Role Based Authorization
-- Admin Student Verification Workflow
+- Login (`/api/auth/login`)
+- Logout (`/api/auth/logout`)
+- JWT Authentication & Cookie Storage
+- Refresh Tokens (`/api/auth/refresh-token`)
+- Role Based Authorization & Get Current User (`/api/auth/me`)
 
 ## Student Verification
 
 - Upload Student ID Card photo to Cloudinary
 - Store Cloudinary Image URL on User & StudentVerification record
 - Pending approval state
-- Admin Approve/Reject with reason
+- Admin Approve/Reject with reason (`/api/student-verification/{id}/approve` & `reject`)
+- Verification Status Check (`/api/student-verification/status`)
 
 ## Club Management & Application
 
-- Apply for new Club Creation (Status: Pending)
+- Apply for new Club Creation (`/api/clubs/apply`, Status: Pending)
 - Admin review & Approve/Reject club application
 - Upgrade applicant role to ClubAdmin upon approval
-- CRUD Clubs, Categories, Search
+- CRUD Clubs, Categories, Search (`/api/clubs`)
 
 ## Membership
 
-- Apply
-- Approve
-- Reject
-- Leave Club
+- Apply to join club (`POST /api/clubs/{clubId}/apply`)
+- Approve membership (`PATCH /api/memberships/{id}/approve`)
+- Reject membership with reason (`PATCH /api/memberships/{id}/reject`)
+- Leave Club (`POST /api/clubs/{clubId}/leave`)
 
 ## Events
 
-- Create/Edit/Delete
+- Create/Edit/Delete Events
 - Free & Paid Events
-- Registration
-- Capacity
+- Registration & Capacity tracking
 - Registration Deadline
 
-## Payments
+## Payments (Stripe Integration)
 
-- Payment Gateway Integration
-- Payment History
-- Transaction Records
-- Event Fee Support
+- Stripe Checkout Session Creation (`POST /api/payments/create`)
+- Webhook & Confirmation callback (`POST /api/payments/confirm`)
+- Customer Payment History (`GET /api/payments`)
+- Payment details by ID (`GET /api/payments/{id}`)
+
+## Notifications
+
+- List user notifications with filtering & pagination (`GET /api/notifications`)
+- Unread badge count (`GET /api/notifications/unread-count`)
+- Notification details (`GET /api/notifications/{id}`)
+- Mark single/all as read (`PATCH /api/notifications/{id}/read` & `read-all`)
+- Delete notification (`DELETE /api/notifications/{id}`)
+- Broadcast message to club members (`POST /api/notifications/broadcast`)
 
 ## Announcements
 
-- CRUD
-- Pin Announcement
+- CRUD Bulletins & Pinned Posts
 
 ---
 
@@ -133,16 +144,17 @@ Key enhancements:
 ## Backend
 
 - ASP.NET Core 10 Web API
-- C#
-- Entity Framework Core
+- C# 13
+- Entity Framework Core 10
 - PostgreSQL
 - Cloudinary (`CloudinaryDotNet`)
+- Stripe (`Stripe.net`)
 - JWT & Refresh Tokens
-- Swagger & `.http` test suite
+- `.http` test suite & Swagger / OpenAPI
 
 ---
 
-# Backend Task Distribution
+# Backend Task Distribution & Status
 
 ## Member 1 (Leader) Smran
 
@@ -150,111 +162,122 @@ Key enhancements:
 - ✅ Student Verification (Cloudinary ID photo upload, Admin approval flow)
 - ✅ User Management (Profile, List users, Role changes, Deletion)
 - ✅ Club Application & Approval Flow (Apply, Pending queue, Admin Approve/Reject)
+- ✅ Membership Module (Apply, Approve, Reject, Leave)
+- ✅ Payment Module (Stripe Sandbox Checkout & Webhook Confirmation)
+- ✅ Notification Module (In-App notifications, Unread counts, Read state, Club Broadcast)
 - ✅ Dashboard APIs (Admin, Club Admin, Student metrics)
-- ✅ Database Schema & Seed Data (`Seed.cs`)
+- ✅ Database Schema, Migrations & Seed Data (`Seed.cs`)
 - ✅ API Documentation & `.http` test suite
-- Next.js Frontend needed to complete
+- Next.js Frontend integration
 
 ## Member 2 Araf
 
-- Club Module
-- Membership Module
+- Frontend Club & Membership UI Components
 
 ## Member 3 Sharika
 
-- Event Module
-- Payment Module
-- Announcement Module
+- Frontend Events, Payments & Announcements UI Components
 
 ---
 
 # Database Entities
 
-- User (with StudentId, IdCardImageUrl, Role, IsVerified)
-- Club (with Status, RejectionReason, ApprovedAt, ApprovedBy)
-- Membership
-- Event
-- EventRegistration
-- Payment
-- StudentVerification (with StudentId, DocumentPath, Status)
-- Announcement
+- **User** (Id, Email, PasswordHash, FullName, Role, StudentId, IdCardImageUrl, IsVerified, RefreshToken)
+- **StudentVerification** (Id, UserId, StudentId, DocumentPath, Status, ApprovedAt, RejectionReason)
+- **Club** (Id, Name, Description, Category, OwnerId, LogoUrl, Status, IsActive, RejectionReason, ApprovedAt)
+- **Membership** (Id, UserId, ClubId, Status, AppliedAt, ApprovedAt, LeftAt, RejectionReason)
+- **Event** (Id, ClubId, Title, Description, Date, Venue, Price, Capacity, RegistrationDeadline)
+- **EventRegistration** (Id, EventId, UserId, PaymentStatus, RegisteredAt)
+- **Payment** (Id, UserId, EventId, Amount, Currency, Status, SessionId, PaymentMethod, CreatedAt, PaidAt)
+- **Announcement** (Id, ClubId, AuthorId, Title, Content, IsPinned, CreatedAt)
+- **Notification** (Id, UserId, ClubId, Title, Message, Type, IsRead, CreatedAt)
 
 ---
 
-# Main APIs
+# Main APIs Reference
 
 ## Authentication
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/auth/register-student|Register student with ID number & ID photo (Pending Approval)|
-|POST|/api/auth/register-club-admin|Register club admin account|
-|POST|/api/auth/login|Login approved users|
-|POST|/api/auth/logout|Logout|
-|POST|/api/auth/refresh-token|Refresh JWT token|
-|GET|/api/auth/me|Get current user profile|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/auth/register-student|Register student with ID number & ID photo|Public|
+|POST|/api/auth/register-club-admin|Register club admin account|Public|
+|POST|/api/auth/login|Login verified users|Public|
+|POST|/api/auth/logout|Logout and clear token cookies|Private|
+|POST|/api/auth/refresh-token|Refresh JWT token|Public|
+|GET|/api/auth/me|Get current authenticated user profile|Private|
 
 ## Student Verification
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/student-verification/upload|Upload ID card photo to Cloudinary|
-|GET|/api/student-verification/pending|List pending verifications (Admin only)|
-|PATCH|/api/student-verification/{id}/approve|Approve student ID (Admin only)|
-|PATCH|/api/student-verification/{id}/reject|Reject student ID with reason (Admin only)|
-|GET|/api/student-verification/status|Get student verification status|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/student-verification/upload|Upload ID card photo to Cloudinary|Student|
+|GET|/api/student-verification/pending|List pending verifications|Admin only|
+|PATCH|/api/student-verification/{id}/approve|Approve student ID|Admin only|
+|PATCH|/api/student-verification/{id}/reject|Reject student ID with reason|Admin only|
+|GET|/api/student-verification/status|Get student verification status|Student|
+
+## User Management
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|GET|/api/users/profile|Get my profile|Private|
+|PATCH|/api/users/profile|Update my profile|Private|
+|GET|/api/users|Get all users (with role & search filters)|Admin only|
+|GET|/api/users/{id}|Get user details by ID|Admin only|
+|PATCH|/api/users/{id}/role|Update user role|Admin only|
+|DELETE|/api/users/{id}|Delete user account|Admin only|
 
 ## Clubs
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/clubs/apply|Apply for new club creation (Status: Pending)|
-|GET|/api/clubs/pending|List pending club applications (Admin only)|
-|PATCH|/api/clubs/{id}/approve|Approve & activate club (Admin only)|
-|PATCH|/api/clubs/{id}/reject|Reject club application (Admin only)|
-|GET|/api/clubs|List active approved clubs|
-|GET|/api/clubs/{id}|Get club details|
-|PATCH|/api/clubs/{id}|Update club|
-|DELETE|/api/clubs/{id}|Delete club|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/clubs/apply|Apply for new club creation (Status: Pending)|Student|
+|GET|/api/clubs/pending|List pending club applications|Admin only|
+|PATCH|/api/clubs/{id}/approve|Approve & activate club|Admin only|
+|PATCH|/api/clubs/{id}/reject|Reject club application|Admin only|
+|GET|/api/clubs|List active approved clubs|Public|
+|GET|/api/clubs/{id}|Get club details|Public|
+|PATCH|/api/clubs/{id}|Update club details/logo|Club Admin|
+|DELETE|/api/clubs/{id}|Delete club|Admin/Owner|
 
 ## Membership
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/clubs/{id}/apply|Apply to join club|
-|PATCH|/api/memberships/{id}/approve|Approve membership|
-|PATCH|/api/memberships/{id}/reject|Reject membership|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/clubs/{clubId}/apply|Apply to join club|Student|
+|PATCH|/api/memberships/{id}/approve|Approve membership|Club Admin|
+|PATCH|/api/memberships/{id}/reject|Reject membership with reason|Club Admin|
+|POST|/api/clubs/{clubId}/leave|Leave club|Student|
 
-## Events
+## Payments (Stripe)
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/events|Create event|
-|GET|/api/events|List events|
-|POST|/api/events/{id}/register|Register for event|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/payments/create|Create Stripe Checkout Session|Student|
+|POST|/api/payments/confirm|Stripe Webhook & Payment confirmation|Public / Webhook|
+|GET|/api/payments|Get logged-in user's payment history|Student|
+|GET|/api/payments/{id}|Get payment transaction by ID|Student / Admin|
 
-## Payments
+## Notifications
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/payments/create-session|Start payment|
-|POST|/api/payments/webhook|Receive payment callback|
-|GET|/api/payments/{id}|Payment details|
-
-## Announcements
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-|POST|/api/announcements|Create announcement|
-|GET|/api/announcements|List announcements|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|GET|/api/notifications|Get my notifications (paginated, isRead filter)|Private|
+|GET|/api/notifications/unread-count|Get unread notification count badge|Private|
+|GET|/api/notifications/{id}|Get notification details|Private|
+|PATCH|/api/notifications/{id}/read|Mark single notification as read|Private|
+|PATCH|/api/notifications/read-all|Mark all notifications as read|Private|
+|DELETE|/api/notifications/{id}|Delete notification|Private|
+|POST|/api/notifications/broadcast|Broadcast notification to all club members|Club Admin|
 
 ## Dashboard APIs
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-|GET|/api/dashboard/admin|System Admin dashboard statistics|
-|GET|/api/dashboard/club-admin|Club Admin dashboard statistics|
-|GET|/api/dashboard/student|Student dashboard statistics|
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|GET|/api/dashboard/admin|System Admin statistics|Admin only|
+|GET|/api/dashboard/club-admin|Club Admin statistics|Club Admin|
+|GET|/api/dashboard/student|Student statistics|Student|
 
 ---
 
@@ -269,21 +292,10 @@ Key enhancements:
 
 ---
 
-# Paid Event Workflow
+# Paid Event & Stripe Payment Workflow
 
-1. Student selects paid event.
-2. Payment session is created.
-3. Student completes payment.
-4. Payment is verified.
-5. Registration is confirmed.
-
----
-
-# Future Enhancements
-
-- QR Check-in
-- Email Verification
-- SignalR Notifications
-- Mobile App
-- AI Event Recommendations
-- Certificate Generation
+1. Student initiates payment via `POST /api/payments/create` with amount and registration metadata.
+2. Backend initializes a **Stripe Checkout Session** using `Stripe.net` SDK and returns the checkout URL.
+3. Student completes payment on Stripe Sandbox hosted checkout page.
+4. Stripe triggers `POST /api/payments/confirm` webhook, updating payment status to `Paid` and recording timestamp.
+5. Registration & receipt history updated under `/api/payments`.
