@@ -13,12 +13,15 @@ Backend/
 ├── University Club Management Backend.slnx  # Visual Studio / .NET Solution File
 └── University Club Management Backend/      # Main ASP.NET Core Web API Project
     ├── Program.cs                           # App startup & middleware setup
-    ├── .env                                 # Local environment variables
+    ├── .env                                 # Local environment variables (DB, JWT, Cloudinary, Stripe Sandbox)
     ├── .gitignore                           # Git ignore for build outputs
     ├── appsettings.json                     # Database connection & logging configs
-    ├── data/                                # EF Core Database Context & Migrations
+    ├── UniversityClubManagement.http        # REST API test queries (9 complete sections matching Postman)
+    ├── data/                                # EF Core Database Context, Seed.cs & Migrations
+    ├── Dtos/                                # Data Transfer Objects by module
     ├── models/                              # Data entities & database models
-    └── Properties/                          # Launch profiles (IIS, Kestrel)
+    ├── Services/                            # Infrastructure services (CloudinaryService)
+    └── modules/                             # Feature modules (auth, student-verification, user, club, membership, payment, notification, dashboard)
 ```
 
 ---
@@ -30,7 +33,8 @@ Backend/
 - **ORM**: Entity Framework Core 10 (`Npgsql.EntityFrameworkCore.PostgreSQL`)
 - **Database**: PostgreSQL
 - **Cloud Image Storage**: Cloudinary (`CloudinaryDotNet`)
-- **Authentication**: JWT Bearer Tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`), Refresh Tokens, BCrypt Hashing
+- **Payment Processing**: Stripe Sandbox (`Stripe.net`)
+- **Authentication**: JWT Bearer Tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`), Refresh Tokens, Cookie handling, BCrypt Hashing
 - **API Tooling**: Swagger / OpenAPI, `.http` interactive test suite
 
 ---
@@ -41,11 +45,12 @@ Backend/
 2. **Student Verification (`/api/student-verification`)**: Student ID number & ID photo Cloudinary upload, Admin approval/rejection queue.
 3. **Users (`/api/users`)**: User profile retrieval, profile updates, Admin user management, role modification, deletion.
 4. **Clubs (`/api/clubs`)**: Club creation application (`/api/clubs/apply`), Admin approval/rejection queue, club listing & logo Cloudinary management.
-5. **Memberships (`/api/memberships`)**: Club joining application submission, approval/rejection by Club Admins.
+5. **Memberships (`/api/memberships`)**: Club joining application submission (`/api/clubs/{clubId}/apply`), approval/rejection by Club Admins (`/api/memberships/{id}/approve` & `reject`), leave club (`/api/clubs/{clubId}/leave`).
 6. **Events (`/api/events`)**: Free & Paid event creation, capacity tracking, registration.
-7. **Payments (`/api/payments`)**: Payment gateway session initialization and webhook callback handling.
-8. **Announcements (`/api/announcements`)**: Club announcements & pinned bulletin management.
-9. **Dashboard (`/api/dashboard`)**: Analytics statistics for Students (`/api/dashboard/student`), Club Admins (`/api/dashboard/club-admin`), and System Admins (`/api/dashboard/admin`).
+7. **Payments (`/api/payments`)**: Stripe Checkout session creation (`/api/payments/create`), webhook payment confirmation (`/api/payments/confirm`), user payment history (`/api/payments`).
+8. **Notifications (`/api/notifications`)**: In-app user notifications, unread count badge, mark as read, delete, and club-wide broadcasts (`/api/notifications/broadcast`).
+9. **Announcements (`/api/announcements`)**: Club announcements & pinned bulletin management.
+10. **Dashboard (`/api/dashboard`)**: Analytics statistics for Students (`/api/dashboard/student`), Club Admins (`/api/dashboard/club-admin`), and System Admins (`/api/dashboard/admin`).
 
 ---
 

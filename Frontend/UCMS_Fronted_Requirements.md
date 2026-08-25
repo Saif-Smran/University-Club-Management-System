@@ -318,7 +318,23 @@ Displays
 - Amount
 - Event
 - Date
-- Status
+- Status & Stripe Receipt Link
+
+---
+
+### Notifications Center
+
+```
+/dashboard/notifications
+```
+
+Displays
+
+- Notification List (Title, Message, Type, Time)
+- Filter by All / Unread
+- Mark as Read button
+- Mark All as Read button
+- Delete Notification
 
 ---
 
@@ -336,6 +352,7 @@ Cards
 - Pending Requests
 - Events
 - Announcements
+- Broadcast Notification to Members
 
 ---
 
@@ -511,6 +528,12 @@ Assign users as Club Admin.
 
 /dashboard/payments
 
+/dashboard/notifications
+
+/payment/success
+
+/payment/cancel
+
 /club-admin
 
 /club-admin/clubs
@@ -524,6 +547,8 @@ Assign users as Club Admin.
 /club-admin/events/[eventId]
 
 /club-admin/announcements
+
+/club-admin/broadcast
 
 /admin
 
