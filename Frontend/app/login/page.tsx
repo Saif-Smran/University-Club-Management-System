@@ -4,20 +4,22 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { GraduationCap, Lock, Mail, Sparkles, ArrowRight } from 'lucide-react';
+import { GraduationCap, Lock, Mail, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { loginSchema } from '@/lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, switchDemoUser } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please enter your email and password');
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast.error(validation.error.issues[0]?.message || 'Please check your details');
       return;
     }
     setLoading(true);
@@ -38,43 +40,6 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-black tracking-tight">Sign In to UCMS</h1>
           <p className="text-xs text-muted-foreground">Access your verified student profile, clubs, and events</p>
-        </div>
-
-        {/* Demo Fast Login Shortcuts */}
-        <div className="p-3.5 rounded-2xl bg-tertiary-container/15 border border-tertiary-container/30 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-tertiary">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Fast Evaluation Presets:</span>
-          </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              onClick={() => {
-                switchDemoUser('Student');
-                router.push('/dashboard');
-              }}
-              className="py-1.5 px-2 rounded-xl text-[11px] font-semibold bg-card border border-border hover:bg-muted text-foreground transition-all"
-            >
-              Student
-            </button>
-            <button
-              onClick={() => {
-                switchDemoUser('ClubAdmin');
-                router.push('/club-admin');
-              }}
-              className="py-1.5 px-2 rounded-xl text-[11px] font-semibold bg-card border border-border hover:bg-muted text-foreground transition-all"
-            >
-              Club Admin
-            </button>
-            <button
-              onClick={() => {
-                switchDemoUser('Admin');
-                router.push('/admin');
-              }}
-              className="py-1.5 px-2 rounded-xl text-[11px] font-semibold bg-card border border-border hover:bg-muted text-foreground transition-all"
-            >
-              Sys Admin
-            </button>
-          </div>
         </div>
 
         {/* Form */}

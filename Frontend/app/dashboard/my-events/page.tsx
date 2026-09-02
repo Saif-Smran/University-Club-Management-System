@@ -5,18 +5,37 @@ import Link from 'next/link';
 import { eventService } from '@/services/api';
 import { Event } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
-import { Calendar, Ticket, MapPin, QrCode, X, CheckCircle2 } from 'lucide-react';
+import { LoadingState } from '@/components/common/LoadingState';
+import { useAuth } from '@/context/AuthContext';
+import { Calendar, Ticket, MapPin, QrCode, X, CheckCircle2, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function MyEventsPage() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<Event | null>(null);
+  const [removingEventId, setRemovingEventId] = useState<string | null>(null);
+
+  const handleRemoveRegistration = async (eventId: string) => {
+    if (!user?.id) return;
+    setRemovingEventId(eventId);
+    const response = await eventService.unregister(eventId, user.id);
+    if (response.success) {
+      setEvents((currentEvents) => currentEvents.filter((event) => event.id !== eventId));
+      setSelectedTicket(null);
+      toast.success('Event registration removed.');
+    } else {
+      toast.error(response.message || 'Unable to remove event registration.');
+    }
+    setRemovingEventId(null);
+  };
 
   useEffect(() => {
     async function loadRegisteredEvents() {
       setLoading(true);
       try {
-        const res = await eventService.getEvents();
+        const res = await eventService.getEvents(undefined, user?.id);
         if (res.data) setEvents(res.data.filter((e) => e.isRegistered));
       } catch (e) {
       } finally {
@@ -24,7 +43,7 @@ export default function MyEventsPage() {
       }
     }
     loadRegisteredEvents();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="flex max-w-7xl mx-auto">
@@ -36,7 +55,7 @@ export default function MyEventsPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">Loading your tickets...</div>
+          <LoadingState message="Loading your event tickets..." />
         ) : events.length === 0 ? (
           <div className="p-12 text-center bg-card rounded-2xl border border-border space-y-3">
             <Ticket className="w-10 h-10 text-muted-foreground mx-auto" />
@@ -72,7 +91,7 @@ export default function MyEventsPage() {
                   </div>
                 </div>
 
-                <div className="p-5 pt-0 flex items-center justify-between border-t border-border/40 pt-3">
+                <div className="p-5 flex items-center justify-between border-t border-border/40 pt-3">
                   <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Pass Active
                   </span>
@@ -82,6 +101,14 @@ export default function MyEventsPage() {
                   >
                     <QrCode className="w-3.5 h-3.5" />
                     <span>View Ticket Pass</span>
+                  </button>
+                  <button
+                    onClick={() => handleRemoveRegistration(evt.id)}
+                    disabled={removingEventId === evt.id}
+                    className="py-1.5 px-3 rounded-xl text-xs font-bold border border-destructive/40 text-destructive hover:bg-destructive/10 disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{removingEventId === evt.id ? 'Removing...' : 'Remove'}</span>
                   </button>
                 </div>
               </div>

@@ -586,6 +586,129 @@
       ]
     },
     {
+      "name": "Events",
+      "description": "Public event discovery plus authenticated event management and registration.",
+      "item": [
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?search=&clubId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "clubId", "value": "" }
+              ]
+            },
+            "description": "Public event list. Authenticated requests include the current user's registration state."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            },
+            "description": "Public event details with the authenticated user's registration state when a token is supplied."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clubAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clubId\": \"{{clubId}}\",\n  \"title\": \"Campus Innovation Workshop\",\n  \"description\": \"A practical workshop for student innovators.\",\n  \"type\": \"Paid\",\n  \"price\": 15.00,\n  \"capacity\": 100,\n  \"date\": \"2026-12-15T10:00:00Z\",\n  \"endTime\": \"2026-12-15T12:00:00Z\",\n  \"venue\": \"University Auditorium\",\n  \"registrationDeadline\": \"2026-12-14T23:59:59Z\",\n  \"bannerUrl\": \"https://images.unsplash.com/photo-1504384308090-c894fdcc538d\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register For Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "register"]
+            },
+            "description": "Registers the authenticated student, enforcing capacity, duplicate registration, and event-date rules."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Event Registration",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "register"]
+            },
+            "description": "Removes only the authenticated user's registration and releases one seat."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Participants",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clubAdminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "participants"]
+            },
+            "description": "Lists participants for an event owned by the authenticated club admin or for a system admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{clubAdminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}"]
+            },
+            "description": "Deletes an event owned by the authenticated club admin or any system admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Dashboard",
       "description": "Club-admin and student dashboard summaries. System-admin summary lives under Admin > Dashboard.",
       "item": [
@@ -673,7 +796,7 @@
             "description": "Customer only. Creates a Stripe Checkout Session for a rental order. Returns a Stripe-hosted checkout URL/session id to redirect the customer to.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"registrationId\": \"{{registrationId}}\",\n  \"amount\": 500,\n  \"currency\": \"usd\",\n  \"successUrl\": \"http://localhost:3000/payment/success\",\n  \"cancelUrl\": \"http://localhost:3000/payment/cancel\"\n}",
+              "raw": "{\n  \"registrationId\": \"{{registrationId}}\",\n  \"eventId\": \"{{eventId}}\",\n  \"amount\": 15.00,\n  \"currency\": \"usd\",\n  \"successUrl\": \"http://localhost:3000/payment/success?eventId={{eventId}}\",\n  \"cancelUrl\": \"http://localhost:3000/payment/cancel\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

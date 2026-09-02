@@ -5,20 +5,24 @@ import { eventService } from '@/services/api';
 import { Event } from '@/types';
 import { EventCard } from '@/components/events/EventCard';
 import { EventRegistrationModal } from '@/components/events/EventRegistrationModal';
+import { useAuth } from '@/context/AuthContext';
+import { LoadingState } from '@/components/common/LoadingState';
 import { Search, Calendar, Filter } from 'lucide-react';
 
 export default function EventsPage() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'All' | 'Free' | 'Paid'>('All');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchEvents() {
       setLoading(true);
       try {
-        const res = await eventService.getEvents({ search });
+        const res = await eventService.getEvents({ search }, user?.id);
         if (res.data) {
           let list = res.data;
           if (filterType === 'Free') list = list.filter((e) => e.price === 0);
@@ -31,7 +35,7 @@ export default function EventsPage() {
       }
     }
     fetchEvents();
-  }, [search, filterType]);
+  }, [search, filterType, user?.id, refreshKey]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -80,11 +84,7 @@ export default function EventsPage() {
 
       {/* Events Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-72 rounded-2xl bg-muted/50 animate-pulse" />
-          ))}
-        </div>
+        <LoadingState message="Loading campus events..." />
       ) : events.length === 0 ? (
         <div className="p-12 text-center bg-card rounded-2xl border border-border">
           <p className="text-sm font-semibold text-foreground">No events found</p>
@@ -102,7 +102,10 @@ export default function EventsPage() {
       <EventRegistrationModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
-        onSuccess={() => setSelectedEvent(null)}
+        onSuccess={() => {
+          setSelectedEvent(null);
+          setRefreshKey((currentKey) => currentKey + 1);
+        }}
       />
     </div>
   );

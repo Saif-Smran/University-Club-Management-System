@@ -127,8 +127,7 @@ public class DashboardService : IDashboardService
             .ToListAsync();
 
         var upcomingRegisteredEventsCount = await _dbContext.EventRegistrations
-            .Include(er => er.Event)
-            .CountAsync(er => er.UserId == userId && er.Event.StartTime >= DateTime.UtcNow);
+            .CountAsync(er => er.UserId == userId);
 
         var pendingClubAppsCount = await _dbContext.Memberships
             .CountAsync(m => m.UserId == userId && m.Status == "Pending");

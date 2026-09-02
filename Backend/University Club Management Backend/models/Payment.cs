@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace University_Club_Management_Backend.Models;
 
+public enum PaymentStatus
+{
+    Pending,
+    Paid,
+    Failed
+}
+
 public class Payment
 {
     [Key]
@@ -22,8 +29,7 @@ public class Payment
     public required string Currency { get; set; } // BDT, USD
 
     [Required]
-    [MaxLength(20)]
-    public required string Status { get; set; } // Pending, Paid, Failed
+    public PaymentStatus Status { get; set; } // Pending, Paid, Failed
 
     [MaxLength(255)]
     public string? SessionId { get; set; }

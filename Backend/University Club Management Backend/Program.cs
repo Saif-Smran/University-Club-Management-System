@@ -7,6 +7,7 @@ using University_Club_Management_Backend.Data;
 using University_Club_Management_Backend.Modules.Auth;
 using University_Club_Management_Backend.Modules.ClubModule;
 using University_Club_Management_Backend.Modules.DashboardModule;
+using University_Club_Management_Backend.Modules.EventModule;
 using University_Club_Management_Backend.Modules.MembershipModule;
 using University_Club_Management_Backend.Modules.NotificationModule;
 using University_Club_Management_Backend.Modules.PaymentModule;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<IStudentVerificationService, StudentVerificationServi
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IClubService, ClubService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();

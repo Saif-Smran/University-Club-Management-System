@@ -6,8 +6,7 @@ public enum ERole
 {
     Student,
     ClubAdmin,
-    Admin,
-    SystemAdmin
+    Admin
 }
 
 public class User

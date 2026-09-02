@@ -102,6 +102,7 @@ export interface EventRegistration {
 export interface Payment {
   id: string;
   userId: string;
+  userName?: string;
   eventId: string;
   eventTitle?: string;
   amount: number;

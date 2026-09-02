@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import {
@@ -13,15 +13,13 @@ import {
   User as UserIcon,
   LogOut,
   LayoutDashboard,
-  ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, role, logout, switchDemoUser } = useAuth();
+  const router = useRouter();
+  const { user, role, logout, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [showDemoMenu, setShowDemoMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const getDashboardLink = () => {
@@ -76,79 +74,25 @@ export function Navbar() {
 
         {/* Right Action Items */}
         <div className="flex items-center gap-3">
-          {/* Quick Role Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setShowDemoMenu(!showDemoMenu)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-tertiary-container bg-tertiary-container/10 text-xs font-semibold text-tertiary hover:bg-tertiary-container/20 transition-all"
-              title="Switch user role for testing"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-tertiary" />
-              <span>Role: <strong className="underline">{role}</strong></span>
-              <ChevronDown className="w-3 h-3 opacity-60" />
-            </button>
-            {showDemoMenu && (
-              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-card border border-border shadow-xl p-1 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="px-2 py-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Test Role Switcher
-                </div>
-                <button
-                  onClick={() => {
-                    switchDemoUser('Student');
-                    setShowDemoMenu(false);
-                  }}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs flex items-center justify-between ${
-                    role === 'Student' ? 'bg-primary text-primary-foreground font-semibold' : 'hover:bg-muted text-foreground'
-                  }`}
-                >
-                  <span>Student (John)</span>
-                  {role === 'Student' && <span className="w-1.5 h-1.5 rounded-full bg-secondary-container" />}
-                </button>
-                <button
-                  onClick={() => {
-                    switchDemoUser('ClubAdmin');
-                    setShowDemoMenu(false);
-                  }}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs flex items-center justify-between ${
-                    role === 'ClubAdmin' ? 'bg-primary text-primary-foreground font-semibold' : 'hover:bg-muted text-foreground'
-                  }`}
-                >
-                  <span>Club Admin (Alex)</span>
-                  {role === 'ClubAdmin' && <span className="w-1.5 h-1.5 rounded-full bg-secondary-container" />}
-                </button>
-                <button
-                  onClick={() => {
-                    switchDemoUser('Admin');
-                    setShowDemoMenu(false);
-                  }}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs flex items-center justify-between ${
-                    role === 'Admin' ? 'bg-primary text-primary-foreground font-semibold' : 'hover:bg-muted text-foreground'
-                  }`}
-                >
-                  <span>System Admin (Dr. Carter)</span>
-                  {role === 'Admin' && <span className="w-1.5 h-1.5 rounded-full bg-secondary-container" />}
-                </button>
-              </div>
-            )}
-          </div>
-
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-tertiary" /> : <Moon className="w-4 h-4 text-primary" />}
           </button>
 
-          {user ? (
+          {isLoading ? (
+            <div className="w-24 h-8 rounded bg-muted animate-pulse" aria-hidden="true" />
+          ) : user ? (
             <>
               <Link
                 href="/dashboard/notifications"
                 className="relative w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-tertiary-container animate-pulse" />
               </Link>
 
               <div className="relative">
@@ -193,6 +137,7 @@ export function Navbar() {
                       onClick={() => {
                         setShowUserMenu(false);
                         logout();
+                        router.push('/');
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors mt-1 border-t border-border/40"
                     >

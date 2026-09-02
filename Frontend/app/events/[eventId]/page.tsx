@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { eventService } from '@/services/api';
 import { Event } from '@/types';
 import { EventRegistrationModal } from '@/components/events/EventRegistrationModal';
+import { useAuth } from '@/context/AuthContext';
 import { Calendar, MapPin, Ticket, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
+  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -17,7 +19,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
     async function loadEvent() {
       setLoading(true);
       try {
-        const res = await eventService.getEventById(eventId);
+        const res = await eventService.getEventById(eventId, user?.id);
         if (res.data) setEvent(res.data);
       } catch (e) {
       } finally {
@@ -25,7 +27,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
       }
     }
     loadEvent();
-  }, [eventId]);
+  }, [eventId, user?.id]);
 
   if (loading) {
     return <div className="max-w-7xl mx-auto p-12 text-center text-xs text-muted-foreground">Loading event details...</div>;
@@ -124,8 +126,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
             </div>
 
             {!isFree && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs flex items-center gap-2">
-                <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
+              <div className="p-3 rounded-xl bg-tertiary-container/20 border border-tertiary-container/60 text-on-tertiary-container text-xs flex items-center gap-2">
+                <Sparkles className="w-4 h-4 shrink-0 text-tertiary" />
                 <span>Stripe Sandbox checkout enabled</span>
               </div>
             )}

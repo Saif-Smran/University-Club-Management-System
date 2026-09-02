@@ -40,19 +40,25 @@ export default function HomePage() {
   return (
     <div className="space-y-20 pb-20">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 bg-gradient-to-b from-primary-container/10 via-background to-background">
+      <section
+        className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 bg-primary-container bg-cover bg-center"
+        style={{
+          backgroundImage: 'url("https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=2400&q=85")',
+        }}
+      >
+        <div className="absolute inset-0 bg-primary/85" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary-container/20 border border-secondary-container/40 text-secondary text-xs font-semibold animate-in fade-in slide-in-from-top-4">
-              <Sparkles className="w-3.5 h-3.5 text-secondary" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary-container/20 border border-secondary-container/40 text-secondary-container text-xs font-semibold animate-in fade-in slide-in-from-top-4">
+              <Sparkles className="w-3.5 h-3.5 text-secondary-container" />
               <span>Academic Nexus 2026 Platform</span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-              Empowering Student Leadership & <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary via-teal-500 to-amber-500">Campus Organizations</span>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-primary-foreground leading-tight">
+              Empowering Student Leadership & <span className="text-secondary-container">Campus Organizations</span>
             </h1>
 
-            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm md:text-base text-primary-foreground/85 max-w-2xl mx-auto leading-relaxed">
               The official University Club Management System. Simplify student verifications, manage club memberships, host free or paid events, and broadcast announcements.
             </p>
 
@@ -66,7 +72,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/register"
-                className="px-6 py-3.5 rounded-2xl text-sm font-bold border border-border bg-card hover:bg-muted text-foreground transition-all shadow-sm flex items-center gap-2"
+                className="px-6 py-3.5 rounded-2xl text-sm font-bold border border-primary-foreground/40 bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all shadow-sm flex items-center gap-2"
               >
                 <GraduationCap className="w-4 h-4 text-secondary" />
                 <span>Student ID Registration</span>
@@ -75,8 +81,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Decorative Grid Lines */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none" />
       </section>
 
       {/* Impact Stats Banner */}

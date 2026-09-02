@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Event } from '@/types';
-import { paymentService } from '@/services/api';
+import { eventService, paymentService } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 import { X, CreditCard, ShieldCheck, Ticket, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -13,6 +14,7 @@ interface EventRegistrationModalProps {
 }
 
 export function EventRegistrationModal({ event, onClose, onSuccess }: EventRegistrationModalProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   if (!event) return null;
@@ -20,29 +22,33 @@ export function EventRegistrationModal({ event, onClose, onSuccess }: EventRegis
   const isFree = event.price === 0;
 
   const handleConfirmRegistration = async () => {
+    if (!user) {
+      toast.error('Please sign in before registering for an event.');
+      return;
+    }
+
     setLoading(true);
     try {
       if (isFree) {
+        await eventService.register(event.id, user.id);
         toast.success(`Successfully registered for ${event.title}!`);
         onSuccess();
         onClose();
       } else {
-        // Stripe Checkout Sandbox simulation
         const res = await paymentService.createCheckoutSession({
-          registrationId: 'reg-' + Date.now(),
-          amount: event.price * 100, // in cents
+          registrationId: crypto.randomUUID(),
+          eventId: event.id,
+          amount: event.price,
           currency: 'usd',
-          successUrl: `${window.location.origin}/payment/success`,
+          successUrl: `${window.location.origin}/payment/success?eventId=${event.id}`,
           cancelUrl: `${window.location.origin}/payment/cancel`,
         });
 
         if (res.data?.checkoutUrl) {
-          toast.info('Redirecting to Stripe Sandbox checkout...');
+          toast.info('Redirecting to Stripe Checkout...');
           window.location.href = res.data.checkoutUrl;
         } else {
-          toast.success(`Payment confirmed via Stripe Sandbox!`);
-          onSuccess();
-          onClose();
+          toast.error(res.message || 'Unable to start Stripe Checkout.');
         }
       }
     } catch (err) {
@@ -95,8 +101,8 @@ export function EventRegistrationModal({ event, onClose, onSuccess }: EventRegis
         </div>
 
         {!isFree && (
-          <div className="p-3 mb-6 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5">
-            <Sparkles className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+          <div className="p-3 mb-6 rounded-xl bg-tertiary-container/20 border border-tertiary-container/60 text-on-tertiary-container text-xs flex items-start gap-2.5">
+            <Sparkles className="w-4 h-4 shrink-0 text-tertiary mt-0.5" />
             <p>
               Integrates with <strong>Stripe Sandbox</strong> checkout. You will be redirected to complete payment securely.
             </p>

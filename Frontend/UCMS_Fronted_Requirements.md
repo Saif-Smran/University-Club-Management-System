@@ -501,6 +501,162 @@ Assign users as Club Admin.
 
 ---
 
+# 4. API Integration & State Management
+
+## Authentication State Management (AuthContext)
+- **Provider**: `AuthContext.tsx` wraps the application with authentication state
+- **Stored Data**: User profile, JWT token, refresh token, authentication status
+- **Token Storage**: HTTP-only cookies (secure, httpOnly, sameSite flags)
+- **Token Refresh**: Automatic refresh via Axios interceptor when token expires
+- **Protected Routes**: Routes check `authContext.isAuthenticated` and redirect to `/login` if needed
+
+## Data Fetching (TanStack Query)
+- **Query Client**: Configured with default cache time and stale time
+- **API Calls**: All data fetching uses TanStack Query hooks for:
+  - Clubs list & details (`useQuery`)
+  - Events listing & filtering (`useQuery`)
+  - User profile & notifications (`useQuery`)
+  - Dashboard statistics & analytics (`useQuery`)
+- **Mutations**: Form submissions use `useMutation` for:
+  - Login/Register (`/api/auth/login`, `/api/auth/register-student`)
+  - Club application (`/api/clubs/apply`)
+  - Membership approval/rejection
+  - Event registration
+  - Stripe payment session creation
+
+## HTTP Client (Axios)
+- **Base Configuration**: `lib/axios.ts` exports pre-configured Axios instance
+- **JWT Interceptor**: Automatically adds Authorization header with JWT token
+- **Error Handling**: Centralized error response handling & logging
+- **Timeout**: 30 seconds default timeout for all API requests
+- **Base URL**: Configured from environment variable `NEXT_PUBLIC_API_URL`
+
+## Form Validation (React Hook Form + Zod)
+- **Validation Schemas**: `lib/validation.ts` exports Zod schemas for:
+  - Student registration form
+  - Login form
+  - Club creation form
+  - Event creation form
+  - Announcement creation
+  - Profile update form
+- **Error Display**: Real-time field-level validation errors
+- **Submit Handling**: Form submission triggers API mutation via TanStack Query
+
+## Theme Management (ThemeContext)
+- **Provider**: `ThemeContext.tsx` manages light/dark mode state
+- **Storage**: Theme preference persisted to localStorage
+- **Tailwind Integration**: Uses `dark:` utility classes for dark mode styling
+
+---
+
+# 5. Component Organization
+
+## Common Components (`/components/common`)
+- Navigation sidebar & top navigation bar
+- Footer
+- Protected route wrapper
+- Modals & dialogs
+- Alert/Toast notifications
+- Loading spinners & skeletons
+- Pagination components
+
+## Admin Components (`/components/admin`)
+- Student verification queue UI
+- User management table
+- Club moderation panel
+- Dashboard statistics widgets
+
+## Club Components (`/components/clubs`)
+- Club card display
+- Club details view
+- Membership application form
+- Club search & filter UI
+- Announcement display
+
+## Event Components (`/components/events`)
+- Event card display
+- Event details modal
+- Event registration form
+- Event creation/edit forms
+- Participant list table
+
+## Payment Components (`/components/payment`)
+- Stripe checkout redirect button
+- Payment history table
+- Payment status badge
+- Stripe success/cancel handling
+
+---
+
+# 6. Type Definitions (`/types/index.ts`)
+
+Exported TypeScript interfaces:
+- `User` - User profile & authentication details
+- `StudentVerification` - Verification document & approval status
+- `Club` - Club entity & metadata
+- `Membership` - Membership application & status
+- `Event` - Event details & capacity tracking
+- `EventRegistration` - Registration record & payment status
+- `Payment` - Payment transaction & Stripe details
+- `Announcement` - Bulletin & pinned post entity
+- `Notification` - Notification feed entry
+- `AdminDashboardStats` - Admin dashboard metrics
+- `ClubAdminDashboardStats` - Club admin performance metrics
+- `StudentDashboardStats` - Student profile & activity metrics
+- `ApiResponse` - Standard API response wrapper
+
+---
+
+# 7. Implementation Status
+
+## Completed Features
+- ✅ Authentication flow (register, login, JWT handling)
+- ✅ Student ID verification UI
+- ✅ Club listing & discovery
+- ✅ Club details page
+- ✅ Event listing & search
+- ✅ Dashboard layouts (student, club admin, system admin)
+- ✅ User profile management
+- ✅ Membership application workflow
+- ✅ Notification center with read/unread toggle
+- ✅ Payment history display
+- ✅ Stripe payment integration
+- ✅ Club admin management panels
+- ✅ System admin control panels
+- ✅ Form validation with Zod
+- ✅ TanStack Query data fetching
+- ✅ Theme switching (light/dark mode)
+
+## UI Components Library Integration
+- ✅ shadcn/ui components
+- ✅ Tailwind CSS styling
+- ✅ Responsive design (mobile/tablet/desktop)
+- ✅ Accessibility features (ARIA labels, keyboard navigation)
+
+---
+
+# 8. API Endpoint Integration Map
+
+| Frontend Page | HTTP Method | Endpoint | Purpose |
+|---|---|---|---|
+| /login | POST | /api/auth/login | Authenticate user |
+| /register | POST | /api/auth/register-student | Register new student |
+| /clubs | GET | /api/clubs | Fetch all active clubs |
+| /clubs/[id] | GET | /api/clubs/{id} | Fetch club details |
+| /events | GET | /api/events | Fetch all events |
+| /dashboard | GET | /api/dashboard/student | Fetch student stats |
+| /dashboard/notifications | GET | /api/notifications | Fetch user notifications |
+| /club-admin | GET | /api/dashboard/club-admin | Fetch club admin stats |
+| /admin | GET | /api/dashboard/admin | Fetch system admin stats |
+| /admin/student-approvals | GET | /api/student-verification/pending | Fetch pending verifications |
+| Apply to club | POST | /api/clubs/{clubId}/apply | Submit membership application |
+| Register for event | POST | /api/events/{id}/register | Register for event |
+| Create payment | POST | /api/payments/create | Create Stripe checkout session |
+| Approve member | PATCH | /api/memberships/{id}/approve | Approve membership |
+| Broadcast notification | POST | /api/notifications/broadcast | Send club-wide notification |
+
+---
+
 # 4. Route Structure
 
 ```

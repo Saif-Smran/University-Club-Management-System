@@ -6,10 +6,10 @@ import { useAuth } from '@/context/AuthContext';
 import { dashboardService, notificationService } from '@/services/api';
 import { StudentDashboardStats, Notification } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
+import { LoadingState } from '@/components/common/LoadingState';
 import {
   Users,
   Calendar,
-  Clock,
   ShieldCheck,
   Bell,
   ArrowRight,
@@ -27,7 +27,7 @@ export default function StudentDashboardPage() {
     async function loadData() {
       setLoading(true);
       try {
-        const statsRes = await dashboardService.getStudentStats();
+        const statsRes = await dashboardService.getStudentStats(user?.id);
         const notifRes = await notificationService.getNotifications();
         if (statsRes.data) setStats(statsRes.data);
         if (notifRes.data) setNotifications(notifRes.data.slice(0, 3));
@@ -37,7 +37,7 @@ export default function StudentDashboardPage() {
       }
     }
     loadData();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="flex max-w-7xl mx-auto">
@@ -52,20 +52,22 @@ export default function StudentDashboardPage() {
             </span>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Welcome back, {user?.fullName || 'Student'}!</h1>
             <p className="text-xs text-primary-foreground/80 max-w-xl">
-              Student ID: <strong className="font-mono text-white">{user?.studentId || '2023-1-60-001'}</strong> • Verification Status:{' '}
-              <span className="underline font-semibold">{user?.verificationStatus || 'Approved'}</span>
+              Student ID: <strong className="font-mono text-white">{user?.studentId || 'Not provided'}</strong> • Verification Status:{' '}
+              <span className="underline font-semibold">{stats?.verificationStatus || user?.verificationStatus || 'Pending'}</span>
             </p>
           </div>
         </div>
 
+        {loading ? <LoadingState message="Loading your dashboard..." /> : <>
+
         {/* Overview Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-xs font-bold uppercase tracking-wider">Joined Clubs</span>
               <Users className="w-4 h-4 text-secondary" />
             </div>
-            <p className="text-2xl font-black text-foreground">{stats?.joinedClubsCount || 1}</p>
+            <p className="text-2xl font-black text-foreground">{stats?.joinedClubsCount ?? 0}</p>
             <Link href="/dashboard/my-clubs" className="text-[11px] font-semibold text-secondary hover:underline flex items-center gap-1">
               <span>View my clubs</span>
               <ArrowRight className="w-3 h-3" />
@@ -77,7 +79,7 @@ export default function StudentDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider">Registered Events</span>
               <Calendar className="w-4 h-4 text-secondary" />
             </div>
-            <p className="text-2xl font-black text-foreground">{stats?.upcomingRegisteredEventsCount || 1}</p>
+            <p className="text-2xl font-black text-foreground">{stats?.upcomingRegisteredEventsCount ?? 0}</p>
             <Link href="/dashboard/my-events" className="text-[11px] font-semibold text-secondary hover:underline flex items-center gap-1">
               <span>View event tickets</span>
               <ArrowRight className="w-3 h-3" />
@@ -86,20 +88,11 @@ export default function StudentDashboardPage() {
 
           <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-xs font-bold uppercase tracking-wider">Pending Apps</span>
-              <Clock className="w-4 h-4 text-amber-500" />
-            </div>
-            <p className="text-2xl font-black text-foreground">{stats?.pendingClubApplicationsCount || 1}</p>
-            <span className="text-[11px] text-muted-foreground">Awaiting admin review</span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-xs font-bold uppercase tracking-wider">Verification Status</span>
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
             <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-              {stats?.verificationStatus || 'Approved'}
+              {stats?.verificationStatus || user?.verificationStatus || 'Pending'}
             </p>
             <Link href="/dashboard/profile" className="text-[11px] font-semibold text-secondary hover:underline">
               Check ID Document
@@ -170,6 +163,7 @@ export default function StudentDashboardPage() {
             </div>
           </div>
         </div>
+        </>}
       </div>
     </div>
   );

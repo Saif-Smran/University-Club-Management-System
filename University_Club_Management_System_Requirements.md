@@ -250,6 +250,29 @@ Key features:
 |PATCH|/api/memberships/{id}/reject|Reject membership with reason|Club Admin|
 |POST|/api/clubs/{clubId}/leave|Leave club|Student|
 
+## Events
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/events|Create new event (free or paid)|Club Admin|
+|GET|/api/events|List all active events (with filters)|Public|
+|GET|/api/events/{id}|Get event details|Public|
+|PATCH|/api/events/{id}|Update event details|Club Admin / Owner|
+|DELETE|/api/events/{id}|Delete event|Club Admin / Owner|
+|POST|/api/events/{id}/register|Register for event|Student|
+|GET|/api/events/{id}/registrations|Get list of registered students|Club Admin / Owner|
+
+## Announcements
+
+| Method | Endpoint | Purpose | Access |
+|---|---|---|---|
+|POST|/api/announcements|Create announcement|Club Admin|
+|GET|/api/announcements|List club announcements (paginated)|Public|
+|GET|/api/announcements/{id}|Get announcement details|Public|
+|PATCH|/api/announcements/{id}|Update announcement|Club Admin / Owner|
+|DELETE|/api/announcements/{id}|Delete announcement|Club Admin / Owner|
+|PATCH|/api/announcements/{id}/pin|Pin/unpin announcement to top|Club Admin / Owner|
+
 ## Payments (Stripe)
 
 | Method | Endpoint | Purpose | Access |

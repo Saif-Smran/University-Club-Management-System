@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/api';
 import { GraduationCap, Upload, CheckCircle2, User, Mail, Lock, IdCard, X, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { studentRegistrationSchema, validateStudentIdImage } from '@/lib/validation';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,6 +22,12 @@ export default function RegisterPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selected = e.target.files[0];
+      const fileError = validateStudentIdImage(selected);
+      if (fileError) {
+        toast.error(fileError);
+        e.target.value = '';
+        return;
+      }
       setFile(selected);
       setPreviewUrl(URL.createObjectURL(selected));
     }
@@ -28,17 +35,24 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !studentId || !password || !file) {
-      toast.error('Please fill in all fields and upload your Student ID photo');
+    const validation = studentRegistrationSchema.safeParse({ fullName, email, studentId, password });
+    const fileError = validateStudentIdImage(file);
+    if (!validation.success) {
+      toast.error(validation.error.issues[0]?.message || 'Please check your details');
       return;
     }
+    if (fileError) {
+      toast.error(fileError);
+      return;
+    }
+    if (!file) return;
 
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('fullName', fullName);
-      formData.append('email', email);
-      formData.append('studentId', studentId);
+      formData.append('fullName', fullName.trim());
+      formData.append('email', email.trim().toLowerCase());
+      formData.append('studentId', studentId.trim());
       formData.append('password', password);
       formData.append('idCardImage', file);
 
@@ -187,7 +201,7 @@ export default function RegisterPage() {
         <div className="text-center text-xs text-muted-foreground pt-2 border-t border-border/40">
           <span>Already registered? </span>
           <Link href="/login" className="font-bold text-secondary hover:underline">
-            Sign In Here
+            Log In Here
           </Link>
         </div>
       </div>

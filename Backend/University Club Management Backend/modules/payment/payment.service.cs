@@ -63,7 +63,7 @@ public class PaymentService : IPaymentService
             EventId = dto.EventId,
             Amount = dto.Amount,
             Currency = string.IsNullOrWhiteSpace(dto.Currency) ? "usd" : dto.Currency.ToLower(),
-            Status = "Pending",
+            Status = PaymentStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -221,7 +221,7 @@ public class PaymentService : IPaymentService
             }
 
             // Update payment status
-            payment.Status = "Paid";
+            payment.Status = PaymentStatus.Paid;
             payment.PaymentMethod = "Stripe";
             payment.PaidAt = DateTime.UtcNow;
 
@@ -305,7 +305,7 @@ public class PaymentService : IPaymentService
             EventTitle = p.Event?.Title,
             Amount = p.Amount,
             Currency = p.Currency,
-            Status = p.Status,
+            Status = p.Status.ToString(),
             SessionId = p.SessionId,
             PaymentMethod = p.PaymentMethod,
             CreatedAt = p.CreatedAt,

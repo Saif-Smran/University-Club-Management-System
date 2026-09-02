@@ -208,6 +208,18 @@ University Club Management Backend/
 | PATCH | /api/memberships/{id}/reject | Club Admin |
 | POST | /api/clubs/{clubId}/leave | Student |
 
+## Event Endpoints
+
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | /api/events | Club Admin |
+| GET | /api/events | Public |
+| GET | /api/events/{id} | Public |
+| PATCH | /api/events/{id} | Club Admin / Owner |
+| DELETE | /api/events/{id} | Club Admin / Owner |
+| POST | /api/events/{id}/register | Student |
+| GET | /api/events/{id}/registrations | Club Admin / Owner |
+
 ## Payment Endpoints (Stripe)
 
 | Method | Endpoint | Access |
@@ -216,6 +228,17 @@ University Club Management Backend/
 | POST | /api/payments/confirm | Public / Webhook |
 | GET | /api/payments | Student |
 | GET | /api/payments/{id} | Student / System Admin |
+
+## Announcement Endpoints
+
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | /api/announcements | Club Admin |
+| GET | /api/announcements | Public |
+| GET | /api/announcements/{id} | Public |
+| PATCH | /api/announcements/{id} | Club Admin / Owner |
+| DELETE | /api/announcements/{id} | Club Admin / Owner |
+| PATCH | /api/announcements/{id}/pin | Club Admin / Owner |
 
 ## Notification Endpoints
 
@@ -241,15 +264,62 @@ University Club Management Backend/
 
 # Database Entities
 
-- **User**
-- **StudentVerification**
-- **Club**
-- **Membership**
-- **Event**
-- **EventRegistration**
-- **Payment**
-- **Announcement**
-- **Notification**
+- **User** - (Id, Email, PasswordHash, FullName, Role, StudentId, IdCardImageUrl, IsVerified, RefreshToken, CreatedAt, UpdatedAt)
+- **StudentVerification** - (Id, UserId, StudentId, DocumentPath, Status, ApprovedAt, RejectionReason, CreatedAt)
+- **Club** - (Id, Name, Description, Category, OwnerId, LogoUrl, Status, IsActive, RejectionReason, ApprovedAt, CreatedAt, UpdatedAt)
+- **Membership** - (Id, UserId, ClubId, Status, AppliedAt, ApprovedAt, LeftAt, RejectionReason, CreatedAt)
+- **Event** - (Id, ClubId, Title, Description, Date, Venue, Price, Capacity, RegistrationDeadline, CreatedAt, UpdatedAt)
+- **EventRegistration** - (Id, EventId, UserId, PaymentStatus, RegisteredAt, CreatedAt)
+- **Payment** - (Id, UserId, EventId, Amount, Currency, Status, SessionId, PaymentMethod, CreatedAt, PaidAt)
+- **Announcement** - (Id, ClubId, AuthorId, Title, Content, IsPinned, CreatedAt, UpdatedAt)
+- **Notification** - (Id, UserId, ClubId, Title, Message, Type, IsRead, CreatedAt)
+
+---
+
+# Workflow Examples
+
+## Student Registration & Verification Workflow
+
+1. Student registers via `POST /api/auth/register-student` providing Student ID number and uploading ID card photo.
+2. Backend uploads ID card photo to **Cloudinary CDN** and saves the returned image URL.
+3. User verification status is set to **Pending** (`IsVerified = false`).
+4. Admin reviews pending verifications at `GET /api/student-verification/pending` using the ID card photo preview.
+5. Admin approves via `PATCH /api/student-verification/{id}/approve` or rejects via `PATCH /api/student-verification/{id}/reject` with reason.
+6. Upon approval, `IsVerified` becomes `true` and the student gains full access.
+
+## Club Creation & Approval Workflow
+
+1. User applies for club creation via `POST /api/clubs/apply` with club name, description, and logo image.
+2. Backend uploads logo to **Cloudinary** and saves the returned URL.
+3. Club status is set to **Pending** review.
+4. Admin reviews pending club applications at `GET /api/clubs/pending`.
+5. Admin approves via `PATCH /api/clubs/{id}/approve` (auto-promotes applicant to ClubAdmin role) or rejects via `PATCH /api/clubs/{id}/reject`.
+6. Upon approval, club becomes **Active** and the owner becomes **Club Admin**.
+
+## Membership Application Workflow
+
+1. Student applies to join a club via `POST /api/clubs/{clubId}/apply`.
+2. Application is created with **Pending** status.
+3. Club Admin reviews pending membership requests at the club management dashboard.
+4. Club Admin approves via `PATCH /api/memberships/{id}/approve` or rejects via `PATCH /api/memberships/{id}/reject` with reason.
+5. Upon approval, student becomes an active club member and receives a notification.
+
+## Event Registration & Stripe Payment Workflow
+
+1. Student views available events via `GET /api/events` and selects a paid event.
+2. Student initiates payment via `POST /api/payments/create` with event ID and amount.
+3. Backend creates a **Stripe Checkout Session** using `Stripe.net` SDK and returns the checkout URL.
+4. Student completes payment on Stripe Sandbox hosted checkout page.
+5. Stripe triggers `POST /api/payments/confirm` webhook, updating payment status to **Paid** and recording timestamp.
+6. Event registration is created with PaymentStatus = **Paid** and student receives confirmation notification.
+
+## Notification & Broadcast Workflow
+
+1. Club Admin sends a broadcast notification via `POST /api/notifications/broadcast` with title and message.
+2. Backend creates notifications for all active club members.
+3. Students receive notifications at `GET /api/notifications` with unread count badge at `GET /api/notifications/unread-count`.
+4. Student marks notifications as read via `PATCH /api/notifications/{id}/read`.
+5. Student can delete notifications via `DELETE /api/notifications/{id}`.
 
 ---
 

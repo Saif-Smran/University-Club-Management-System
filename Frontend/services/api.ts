@@ -32,6 +32,42 @@ let mockEvents = [...INITIAL_EVENTS];
 let mockPayments = [...INITIAL_PAYMENTS];
 let mockAnnouncements = [...INITIAL_ANNOUNCEMENTS];
 let mockNotifications = [...INITIAL_NOTIFICATIONS];
+const mockEventRegistrations = new Set<string>();
+
+if (typeof window !== 'undefined') {
+  const savedRegistrations = localStorage.getItem('mockEventRegistrations');
+  if (savedRegistrations) {
+    try {
+      (JSON.parse(savedRegistrations) as string[])
+        .filter((registration) => registration !== '11111111-1111-1111-1111-111111111111:e1111111-1111-1111-1111-111111111111')
+        .forEach((registration) => mockEventRegistrations.add(registration));
+      localStorage.setItem('mockEventRegistrations', JSON.stringify([...mockEventRegistrations]));
+    } catch {
+      localStorage.removeItem('mockEventRegistrations');
+    }
+  }
+
+  const savedPayments = localStorage.getItem('mockPaymentsList');
+  if (savedPayments) {
+    try {
+      mockPayments = JSON.parse(savedPayments);
+    } catch {
+      localStorage.removeItem('mockPaymentsList');
+    }
+  }
+}
+
+function applyLocalRegistration(event: Event, userId?: string): Event {
+  if (!userId || !mockEventRegistrations.has(`${userId}:${event.id}`)) return event;
+  if (event.isRegistered) return event;
+
+  return {
+    ...event,
+    isRegistered: true,
+    registeredCount: event.registeredCount + 1,
+    seatsRemaining: Math.max(0, event.seatsRemaining - 1),
+  };
+}
 
 async function safeCall<T>(apiFn: () => Promise<{ data: ApiResponse<T> }>, fallbackFn: () => T | Promise<T>): Promise<ApiResponse<T>> {
   try {
@@ -49,18 +85,8 @@ async function safeCall<T>(apiFn: () => Promise<{ data: ApiResponse<T> }>, fallb
 
 export const authService = {
   login: async (credentials: { email: string; password: string }) => {
-    return safeCall(
-      () => apiClient.post('/auth/login', credentials),
-      () => {
-        const found = mockUsers.find((u) => u.email.toLowerCase() === credentials.email.toLowerCase()) || mockUsers[0];
-        return {
-          accessToken: 'mock-access-token-' + Date.now(),
-          refreshToken: 'mock-refresh-token-' + Date.now(),
-          expiresIn: 900,
-          user: found,
-        };
-      }
-    );
+    const response = await apiClient.post('/auth/login', credentials, { withCredentials: true });
+    return response.data;
   },
 
   registerStudent: async (formData: FormData) => {
@@ -454,8 +480,8 @@ export const membershipService = {
 };
 
 export const eventService = {
-  getEvents: async (params?: { search?: string; clubId?: string }) => {
-    return safeCall(
+  getEvents: async (params?: { search?: string; clubId?: string }, currentUserId?: string) => {
+    const response = await safeCall(
       () => apiClient.get('/events', { params }),
       () => {
         let list = [...mockEvents];
@@ -464,16 +490,72 @@ export const eventService = {
           const q = params.search.toLowerCase();
           list = list.filter((e) => e.title.toLowerCase().includes(q) || e.venue.toLowerCase().includes(q));
         }
+        if (currentUserId) {
+          return list.map((event) => ({
+            ...applyLocalRegistration(event, currentUserId),
+          }));
+        }
         return list;
+      }
+    );
+    if (currentUserId && response.data) {
+      response.data = response.data.map((event) => applyLocalRegistration(event, currentUserId));
+    }
+    return response;
+  },
+
+  register: async (eventId: string, userId?: string) => {
+    return safeCall(
+      () => apiClient.post(`/events/${eventId}/register`),
+      () => {
+        if (!userId) throw new Error('A logged-in user is required to register for an event.');
+
+        const registration = `${userId}:${eventId}`;
+        mockEventRegistrations.add(registration);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mockEventRegistrations', JSON.stringify([...mockEventRegistrations]));
+        }
+        return { eventId, userId, registered: true };
       }
     );
   },
 
-  getEventById: async (id: string) => {
-    return safeCall(
+  unregister: async (eventId: string, userId?: string) => {
+    try {
+      const response = await apiClient.delete(`/events/${eventId}/register`);
+      if (userId) {
+        mockEventRegistrations.delete(`${userId}:${eventId}`);
+        localStorage.setItem('mockEventRegistrations', JSON.stringify([...mockEventRegistrations]));
+      }
+      return response.data as ApiResponse<{ eventId: string; userId: string }>;
+    } catch (error: any) {
+      if (!userId) {
+        return {
+          success: false,
+          message: 'A logged-in user is required to remove a registration.',
+          data: undefined,
+        } as unknown as ApiResponse<{ eventId: string; userId: string }>;
+      }
+
+      mockEventRegistrations.delete(`${userId}:${eventId}`);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mockEventRegistrations', JSON.stringify([...mockEventRegistrations]));
+      }
+      return {
+        success: true,
+        message: 'Event registration removed successfully.',
+        data: { eventId, userId },
+      };
+    }
+  },
+
+  getEventById: async (id: string, currentUserId?: string) => {
+    const response = await safeCall(
       () => apiClient.get(`/events/${id}`),
       () => mockEvents.find((e) => e.id === id) || mockEvents[0]
     );
+    if (response.data) response.data = applyLocalRegistration(response.data, currentUserId);
+    return response;
   },
 
   createEvent: async (data: Partial<Event>) => {
@@ -519,7 +601,7 @@ export const eventService = {
         {
           id: 'reg-001',
           eventId,
-          eventTitle: 'National Collegiate Hackathon 2026',
+          eventTitle: mockEvents.find((e) => e.id === eventId)?.title || 'Startup Pitch Masterclass',
           userId: mockUsers[0].id,
           userName: mockUsers[0].fullName,
           userEmail: mockUsers[0].email,
@@ -533,17 +615,42 @@ export const eventService = {
 };
 
 export const paymentService = {
-  createCheckoutSession: async (payload: { registrationId: string; amount: number; currency?: string; successUrl?: string; cancelUrl?: string }) => {
-    return safeCall(
-      () => apiClient.post('/payments/create', payload),
-      () => {
-        const sessionId = 'cs_test_' + Date.now();
-        return {
-          sessionId,
-          checkoutUrl: `/payment/success?session_id=${sessionId}&registrationId=${payload.registrationId}`,
-        };
+  createCheckoutSession: async (payload: { registrationId?: string; eventId: string; amount: number; currency?: string; successUrl?: string; cancelUrl?: string }) => {
+    try {
+      const response = await apiClient.post('/payments/create', payload);
+      return response.data as ApiResponse<{ sessionId: string; checkoutUrl: string }>;
+    } catch (error: any) {
+      const targetEvent = mockEvents.find((e) => e.id === payload.eventId);
+      const eventTitle = targetEvent?.title || 'Startup Pitch Masterclass';
+      const newPayment: Payment = {
+        id: 'pay_' + Math.random().toString(36).substring(2, 10),
+        userId: mockUsers[0].id,
+        userName: mockUsers[0].fullName,
+        eventId: payload.eventId,
+        eventTitle: eventTitle,
+        amount: payload.amount,
+        currency: payload.currency || 'usd',
+        status: 'Paid',
+        sessionId: 'cs_test_' + Math.random().toString(36).substring(2, 12),
+        paymentMethod: 'Stripe Sandbox (Card ending in 4242)',
+        createdAt: new Date().toISOString(),
+        paidAt: new Date().toISOString(),
+      };
+      if (!mockPayments.some((p) => p.eventId === payload.eventId)) {
+        mockPayments.unshift(newPayment);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mockPaymentsList', JSON.stringify(mockPayments));
+        }
       }
-    );
+      return {
+        success: true,
+        message: 'Checkout session created',
+        data: {
+          sessionId: newPayment.sessionId!,
+          checkoutUrl: payload.successUrl || `/payment/success?eventId=${payload.eventId}`,
+        },
+      };
+    }
   },
 
   confirmPayment: async (payload: any) => {
@@ -706,17 +813,34 @@ export const dashboardService = {
     );
   },
 
-  getStudentStats: async (): Promise<ApiResponse<StudentDashboardStats>> => {
-    return safeCall(
+  getStudentStats: async (userId?: string): Promise<ApiResponse<StudentDashboardStats>> => {
+    const response = await safeCall(
       () => apiClient.get('/dashboard/student'),
-      () => ({
-        joinedClubsCount: mockClubs.filter((c) => c.isJoined && c.membershipStatus === 'Approved').length,
-        upcomingRegisteredEventsCount: mockEvents.filter((e) => e.isRegistered).length,
-        pendingClubApplicationsCount: mockClubs.filter((c) => c.membershipStatus === 'Pending').length,
-        isStudentVerified: mockUsers[0].isVerified,
-        verificationStatus: mockUsers[0].verificationStatus || 'Approved',
-        joinedClubs: mockClubs.filter((c) => c.isJoined),
-      })
+      () => {
+        const currentUser = mockUsers.find((user) => user.id === userId);
+        const memberships = mockMemberships.filter((membership) => membership.userId === userId);
+        const joinedClubIds = new Set(
+          memberships.filter((membership) => membership.status === 'Approved').map((membership) => membership.clubId)
+        );
+        const joinedClubs = mockClubs.filter((club) => joinedClubIds.has(club.id));
+
+        return {
+          joinedClubsCount: joinedClubs.length,
+          upcomingRegisteredEventsCount: mockEvents.filter((event) => event.isRegistered || (userId && mockEventRegistrations.has(`${userId}:${event.id}`))).length,
+          pendingClubApplicationsCount: memberships.filter((membership) => membership.status === 'Pending').length,
+          isStudentVerified: currentUser?.isVerified ?? false,
+          verificationStatus: currentUser?.verificationStatus || 'Pending',
+          joinedClubs,
+        };
+      }
     );
+    if (response.data) {
+      const localRegisteredEvents = mockEvents.filter((event) => event.isRegistered || (userId && mockEventRegistrations.has(`${userId}:${event.id}`))).length;
+      response.data = {
+        ...response.data,
+        upcomingRegisteredEventsCount: Math.max(response.data.upcomingRegisteredEventsCount, localRegisteredEvents),
+      };
+    }
+    return response;
   },
 };

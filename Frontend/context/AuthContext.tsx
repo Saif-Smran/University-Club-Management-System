@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role } from '@/types';
 import { authService } from '@/services/api';
-import { INITIAL_USERS } from '@/services/mockData';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -13,42 +12,54 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
-  switchDemoUser: (targetRole: Role) => void;
   refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(INITIAL_USERS[0]);
-  const [token, setToken] = useState<string | null>('demo-jwt-token');
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedUser = localStorage.getItem('user');
       const savedToken = localStorage.getItem('token');
-      if (savedUser && savedToken) {
+      if (savedUser && savedToken && !savedToken.startsWith('mock-') && !savedToken.startsWith('demo-')) {
         try {
           setUser(JSON.parse(savedUser));
           setToken(savedToken);
-        } catch (e) {}
+        } catch {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+        }
       }
+      else if (savedToken?.startsWith('mock-') || savedToken?.startsWith('demo-')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+      }
+      setIsLoading(false);
     }
   }, []);
 
   const login = async (email: string, pass: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const res = await authService.login({ email, password: pass });
-      if (res.data?.user) {
-        setUser(res.data.user);
-        setToken(res.data.accessToken || 'demo-jwt-token');
+      const res = await authService.login({ email: email.trim().toLowerCase(), password: pass });
+      const authData = res.data;
+      if (res.success && authData?.user && authData.accessToken) {
+        setUser(authData.user);
+        setToken(authData.accessToken);
         if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(res.data.user));
-          localStorage.setItem('token', res.data.accessToken || 'demo-jwt-token');
+          localStorage.setItem('user', JSON.stringify(authData.user));
+          localStorage.setItem('token', authData.accessToken);
+          if (authData.refreshToken) {
+            localStorage.setItem('refreshToken', authData.refreshToken);
+          }
         }
-        toast.success(`Welcome back, ${res.data.user.fullName}!`);
+        toast.success(`Welcome back, ${authData.user.fullName}!`);
         return true;
       }
       return false;
@@ -69,17 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('refreshToken');
     }
     toast.info('Logged out successfully');
-  };
-
-  const switchDemoUser = (targetRole: Role) => {
-    const found = INITIAL_USERS.find((u) => u.role === targetRole) || INITIAL_USERS[0];
-    setUser(found);
-    setToken(`demo-${targetRole.toLowerCase()}-token`);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user', JSON.stringify(found));
-      localStorage.setItem('token', `demo-${targetRole.toLowerCase()}-token`);
-    }
-    toast.success(`Switched role to ${targetRole} (${found.fullName})`);
   };
 
   const refreshUser = async () => {
@@ -103,7 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
-        switchDemoUser,
         refreshUser,
       }}
     >

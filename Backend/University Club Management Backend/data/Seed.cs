@@ -14,17 +14,7 @@ public static class Seed
 
         // 1. Users
         var seedUsers = new[]
-        {
-            new User
-            {
-                Id = Guid.NewGuid(),
-                FullName = "Super Admin",
-                Email = "admin@ucms.edu",
-                PasswordHash = passwordHashAdmin,
-                Role = ERole.SystemAdmin,
-                IsVerified = true,
-                CreatedAt = DateTime.UtcNow
-            },
+        {           
             new User
             {
                 Id = Guid.NewGuid(),
@@ -50,6 +40,36 @@ public static class Seed
                 Id = Guid.NewGuid(),
                 FullName = "Robotics Lead Admin",
                 Email = "robotics.lead@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.ClubAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Arts Society Admin",
+                Email = "arts.admin@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.ClubAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Business Forum Admin",
+                Email = "business.admin@ucms.edu",
+                PasswordHash = passwordHashUser,
+                Role = ERole.ClubAdmin,
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Environment Club Admin",
+                Email = "environment.admin@ucms.edu",
                 PasswordHash = passwordHashUser,
                 Role = ERole.ClubAdmin,
                 IsVerified = true,
@@ -152,6 +172,9 @@ public static class Seed
         // 3. Clubs
         var clubAdmin1 = userMap["tech.lead@ucms.edu"];
         var clubAdmin2 = userMap["robotics.lead@ucms.edu"];
+        var clubAdmin3 = userMap["arts.admin@ucms.edu"];
+        var clubAdmin4 = userMap["business.admin@ucms.edu"];
+        var clubAdmin5 = userMap["environment.admin@ucms.edu"];
 
         var seedClubs = new[]
         {
@@ -193,6 +216,62 @@ public static class Seed
                 LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_photo_logo.png",
                 Status = EClubStatus.Pending,
                 IsActive = false,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Arts and Performance Society",
+                Description = "Connecting students through theatre, music, dance, and live performance.",
+                Category = "Arts",
+                OwnerId = clubAdmin3.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_arts_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Business and Entrepreneurship Forum",
+                Description = "A practical community for student founders, innovators, and future business leaders.",
+                Category = "Business",
+                OwnerId = clubAdmin4.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_business_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Green Campus Initiative",
+                Description = "Leading sustainability projects, recycling drives, and environmental awareness campaigns.",
+                Category = "Social Work",
+                OwnerId = clubAdmin5.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_environment_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Debate and Public Speaking Club",
+                Description = "Developing confident speakers through debates, model conferences, and public forums.",
+                Category = "Academic",
+                OwnerId = clubAdmin1.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_debate_logo.png",
+                Status = EClubStatus.Approved,
+                IsActive = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow
             }
         };
@@ -269,6 +348,96 @@ public static class Seed
                 RegisteredCount = 0,
                 StartTime = DateTime.UtcNow.AddDays(7),
                 EndTime = DateTime.UtcNow.AddDays(8),
+                Location = "Main Campus Auditorium",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = computerClub.Id,
+                Title = "Introduction to Open Source",
+                Description = "Learn how to make your first contribution to an open-source project.",
+                Type = "Free",
+                Price = 0,
+                Capacity = 80,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(10),
+                EndTime = DateTime.UtcNow.AddDays(10).AddHours(2),
+                Location = "Computer Science Lab 204",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = clubMap["Robotics Club"].Id,
+                Title = "Robotics Build Day",
+                Description = "A hands-on free build day for students interested in sensors and autonomous systems.",
+                Type = "Free",
+                Price = 0,
+                Capacity = 50,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(14),
+                EndTime = DateTime.UtcNow.AddDays(14).AddHours(6),
+                Location = "Engineering Workshop",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = clubMap["Arts and Performance Society"].Id,
+                Title = "Campus Music Night",
+                Description = "An evening of live performances by university student artists.",
+                Type = "Paid",
+                Price = 8.00m,
+                Capacity = 250,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(18),
+                EndTime = DateTime.UtcNow.AddDays(18).AddHours(3),
+                Location = "University Open-Air Theatre",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = clubMap["Business and Entrepreneurship Forum"].Id,
+                Title = "Startup Pitch Masterclass",
+                Description = "Build a compelling pitch deck and present your startup idea to experienced mentors.",
+                Type = "Paid",
+                Price = 12.50m,
+                Capacity = 120,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(21),
+                EndTime = DateTime.UtcNow.AddDays(21).AddHours(3),
+                Location = "Business Faculty Conference Hall",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = clubMap["Green Campus Initiative"].Id,
+                Title = "Sustainable Campus Workshop",
+                Description = "Explore practical ways to reduce waste and improve sustainability on campus.",
+                Type = "Free",
+                Price = 0,
+                Capacity = 100,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(25),
+                EndTime = DateTime.UtcNow.AddDays(25).AddHours(2),
+                Location = "Student Union Seminar Room",
+                CreatedAt = DateTime.UtcNow
+            },
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                ClubId = clubMap["Debate and Public Speaking Club"].Id,
+                Title = "Interfaculty Debate Finals",
+                Description = "Watch the university's leading speakers compete in the annual debate finals.",
+                Type = "Paid",
+                Price = 5.00m,
+                Capacity = 300,
+                RegisteredCount = 0,
+                StartTime = DateTime.UtcNow.AddDays(30),
+                EndTime = DateTime.UtcNow.AddDays(30).AddHours(3),
                 Location = "Main Campus Auditorium",
                 CreatedAt = DateTime.UtcNow
             }

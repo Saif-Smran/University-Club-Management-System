@@ -197,6 +197,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = isHttps,
             SameSite = SameSiteMode.Lax,
+            Path = "/",
             Expires = DateTimeOffset.UtcNow.AddMinutes(15),
             IsEssential = true
         };
@@ -206,6 +207,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = isHttps,
             SameSite = SameSiteMode.Lax,
+            Path = "/",
             Expires = DateTimeOffset.UtcNow.AddDays(7),
             IsEssential = true
         };
@@ -223,6 +225,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = isHttps,
             SameSite = SameSiteMode.Lax,
+            Path = "/",
             Expires = DateTimeOffset.UtcNow.AddDays(-1),
             IsEssential = true
         };
