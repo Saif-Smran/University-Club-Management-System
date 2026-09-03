@@ -10,7 +10,7 @@ interface AuthContextType {
   role: Role;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, pass: string) => Promise<boolean>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; role?: Role }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, pass: string): Promise<boolean> => {
+  const login = async (email: string, pass: string): Promise<{ success: boolean; role?: Role }> => {
     setIsLoading(true);
     try {
       const res = await authService.login({ email: email.trim().toLowerCase(), password: pass });
@@ -60,12 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         toast.success(`Welcome back, ${authData.user.fullName}!`);
-        return true;
+        return { success: true, role: authData.user.role };
       }
-      return false;
+      return { success: false };
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Login failed');
-      return false;
+      return { success: false };
     } finally {
       setIsLoading(false);
     }

@@ -17,13 +17,25 @@ import {
   CreditCard,
 } from 'lucide-react';
 
+import { useRouter } from 'next/navigation';
+
 export default function StudentDashboardPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, role } = useAuth();
   const [stats, setStats] = useState<StudentDashboardStats | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (role === 'ClubAdmin') {
+      router.replace('/club-admin');
+      return;
+    }
+    if (role === 'Admin' || (role as string) === 'SystemAdmin') {
+      router.replace('/admin');
+      return;
+    }
+
     async function loadData() {
       setLoading(true);
       try {
@@ -37,7 +49,7 @@ export default function StudentDashboardPage() {
       }
     }
     loadData();
-  }, [user?.id]);
+  }, [user?.id, role, router]);
 
   return (
     <div className="flex max-w-7xl mx-auto">

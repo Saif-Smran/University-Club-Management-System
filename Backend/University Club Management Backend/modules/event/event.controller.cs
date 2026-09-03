@@ -24,6 +24,17 @@ public class EventController : ControllerBase
         return Ok(await _eventService.GetEventsAsync(userId, search, clubId));
     }
 
+    [HttpGet("managed")]
+    [Authorize(Roles = "ClubAdmin,Admin,SystemAdmin")]
+    public async Task<IActionResult> GetManagedEvents([FromQuery] string? search)
+    {
+        var userId = GetRequiredUserId();
+        if (!userId.HasValue) return Unauthorized();
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        var isAdmin = role is "Admin" or "SystemAdmin";
+        return Ok(await _eventService.GetManagedEventsAsync(userId.Value, isAdmin, search));
+    }
+
     [HttpGet("{eventId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetEvent(Guid eventId)

@@ -11,7 +11,7 @@ namespace University_Club_Management_Backend.Modules.PaymentModule;
 public interface IPaymentService
 {
     Task<ApiResponse<CheckoutSessionResponseData>> CreateCheckoutSessionAsync(Guid userId, CreateCheckoutSessionDto dto);
-    Task<ApiResponse<bool>> ConfirmPaymentAsync(string rawBody, string? stripeSignature);
+    Task<ApiResponse<bool>> ConfirmPaymentAsync(string rawBody, string? stripeSignature, string? authenticatedUserIdStr = null);
     Task<ApiResponse<List<PaymentDto>>> GetMyPaymentsAsync(Guid userId);
     Task<ApiResponse<PaymentDto>> GetPaymentByIdAsync(Guid paymentId, Guid userId, bool isAdmin);
 }
@@ -137,7 +137,7 @@ public class PaymentService : IPaymentService
         }
     }
 
-    public async Task<ApiResponse<bool>> ConfirmPaymentAsync(string rawBody, string? stripeSignature)
+    public async Task<ApiResponse<bool>> ConfirmPaymentAsync(string rawBody, string? stripeSignature, string? authenticatedUserIdStr = null)
     {
         try
         {
@@ -167,6 +167,10 @@ public class PaymentService : IPaymentService
                 }
             }
 
+            string? eventIdStr = null;
+            string? userIdStr = null;
+            decimal? amountVal = null;
+
             // 2. Parse JSON body directly if webhook construction wasn't used or fell through
             if (string.IsNullOrWhiteSpace(paymentIdStr) && string.IsNullOrWhiteSpace(sessionIdStr))
             {
@@ -182,19 +186,20 @@ public class PaymentService : IPaymentService
                         sessionIdStr = sessId.GetString();
                     }
 
-                    if (objectElement.TryGetProperty("metadata", out var metaElement) &&
-                        metaElement.TryGetProperty("paymentId", out var pIdVal))
+                    if (objectElement.TryGetProperty("metadata", out var metaElement))
                     {
-                        paymentIdStr = pIdVal.GetString();
+                        if (metaElement.TryGetProperty("paymentId", out var pIdVal)) paymentIdStr = pIdVal.GetString();
+                        if (metaElement.TryGetProperty("eventId", out var eIdVal)) eventIdStr = eIdVal.GetString();
+                        if (metaElement.TryGetProperty("userId", out var uIdVal)) userIdStr = uIdVal.GetString();
                     }
                 }
-                else if (root.TryGetProperty("paymentId", out var directPid))
+                else
                 {
-                    paymentIdStr = directPid.GetString();
-                }
-                else if (root.TryGetProperty("sessionId", out var directSid))
-                {
-                    sessionIdStr = directSid.GetString();
+                    if (root.TryGetProperty("paymentId", out var directPid)) paymentIdStr = directPid.GetString();
+                    if (root.TryGetProperty("sessionId", out var directSid)) sessionIdStr = directSid.GetString();
+                    if (root.TryGetProperty("eventId", out var directEid)) eventIdStr = directEid.GetString();
+                    if (root.TryGetProperty("userId", out var directUid)) userIdStr = directUid.GetString();
+                    if (root.TryGetProperty("amount", out var directAmount) && directAmount.TryGetDecimal(out var amt)) amountVal = amt;
                 }
             }
 
@@ -209,21 +214,44 @@ public class PaymentService : IPaymentService
                 payment = await _dbContext.Payments.FirstOrDefaultAsync(p => p.SessionId == sessionIdStr);
             }
 
-            if (payment == null)
+            Guid.TryParse(eventIdStr, out var parsedEventId);
+            Guid.TryParse(userIdStr, out var parsedUserId);
+
+            if (parsedUserId == Guid.Empty && !string.IsNullOrWhiteSpace(authenticatedUserIdStr))
             {
-                // If payment record wasn't found in DB, return received true for Stripe webhooks
-                return new ApiResponse<bool>
-                {
-                    Success = true,
-                    Message = "Event received, no matching pending payment record found.",
-                    Data = true
-                };
+                Guid.TryParse(authenticatedUserIdStr, out parsedUserId);
             }
 
-            // Update payment status
-            payment.Status = PaymentStatus.Paid;
-            payment.PaymentMethod = "Stripe";
-            payment.PaidAt = DateTime.UtcNow;
+            if (payment == null && parsedEventId != Guid.Empty && parsedUserId != Guid.Empty)
+            {
+                payment = await _dbContext.Payments
+                    .FirstOrDefaultAsync(p => p.EventId == parsedEventId && p.UserId == parsedUserId);
+            }
+
+            if (payment == null && parsedEventId != Guid.Empty && parsedUserId != Guid.Empty)
+            {
+                var evt = await _dbContext.Events.FindAsync(parsedEventId);
+                var amt = amountVal ?? evt?.Price ?? 0;
+                payment = new Payment
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = parsedUserId,
+                    EventId = parsedEventId,
+                    Amount = amt,
+                    Currency = "usd",
+                    Status = PaymentStatus.Paid,
+                    PaymentMethod = "Stripe Sandbox",
+                    CreatedAt = DateTime.UtcNow,
+                    PaidAt = DateTime.UtcNow
+                };
+                _dbContext.Payments.Add(payment);
+            }
+            else if (payment != null)
+            {
+                payment.Status = PaymentStatus.Paid;
+                payment.PaymentMethod = "Stripe Sandbox";
+                payment.PaidAt = DateTime.UtcNow;
+            }
 
             await _dbContext.SaveChangesAsync();
 

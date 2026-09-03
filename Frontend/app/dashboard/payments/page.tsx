@@ -17,6 +17,8 @@ import {
   Search
 } from 'lucide-react';
 
+import { LoadingState } from '@/components/common/LoadingState';
+
 export default function PaymentsPage() {
   const { user } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -28,7 +30,7 @@ export default function PaymentsPage() {
     async function loadPayments() {
       setLoading(true);
       try {
-        const res = await paymentService.getHistory();
+        const res = await paymentService.getHistory(user?.id);
         if (Array.isArray(res?.data)) {
           setPayments(res.data);
         } else {
@@ -41,7 +43,7 @@ export default function PaymentsPage() {
       }
     }
     loadPayments();
-  }, []);
+  }, [user?.id]);
 
   const safePayments = Array.isArray(payments) ? payments : [];
   const totalSpent = safePayments.reduce((acc, pay) => acc + (pay?.amount || 0), 0);
@@ -133,9 +135,7 @@ export default function PaymentsPage() {
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-xs text-muted-foreground bg-card rounded-2xl border border-border">
-              Loading payment records and invoices...
-            </div>
+            <LoadingState message="Loading payment records and invoices..." />
           ) : filteredPayments.length === 0 ? (
             <div className="p-12 text-center bg-card rounded-2xl border border-border space-y-3">
               <CreditCard className="w-12 h-12 text-muted-foreground mx-auto" />

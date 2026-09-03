@@ -35,14 +35,17 @@ export function EventRegistrationModal({ event, onClose, onSuccess }: EventRegis
         onSuccess();
         onClose();
       } else {
-        const res = await paymentService.createCheckoutSession({
-          registrationId: crypto.randomUUID(),
-          eventId: event.id,
-          amount: event.price,
-          currency: 'usd',
-          successUrl: `${window.location.origin}/payment/success?eventId=${event.id}`,
-          cancelUrl: `${window.location.origin}/payment/cancel`,
-        });
+        const res = await paymentService.createCheckoutSession(
+          {
+            registrationId: crypto.randomUUID(),
+            eventId: event.id,
+            amount: event.price,
+            currency: 'usd',
+            successUrl: `${window.location.origin}/payment/success?eventId=${event.id}`,
+            cancelUrl: `${window.location.origin}/payment/cancel`,
+          },
+          user.id
+        );
 
         if (res.data?.checkoutUrl) {
           toast.info('Redirecting to Stripe Checkout...');

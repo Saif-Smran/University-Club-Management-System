@@ -8,6 +8,8 @@ import { EventRegistrationModal } from '@/components/events/EventRegistrationMod
 import { useAuth } from '@/context/AuthContext';
 import { Calendar, MapPin, Ticket, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 
+import { LoadingState } from '@/components/common/LoadingState';
+
 export default function EventDetailPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
   const { user } = useAuth();
@@ -30,7 +32,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
   }, [eventId, user?.id]);
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto p-12 text-center text-xs text-muted-foreground">Loading event details...</div>;
+    return (
+      <div className="max-w-7xl mx-auto p-12">
+        <LoadingState message="Loading event details..." />
+      </div>
+    );
   }
 
   if (!event) {

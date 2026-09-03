@@ -114,7 +114,8 @@ Backend/
 
 6. **Events (`/api/events`)** 
    - Free & paid event creation with capacity tracking
-   - Event listing with filters & search
+   - Event listing with filters & search (`/api/events`)
+   - Managed events listing for club admins (`/api/events/managed`)
    - Registration deadline & venue management
    - Event registration tracking
    - Participant list retrieval

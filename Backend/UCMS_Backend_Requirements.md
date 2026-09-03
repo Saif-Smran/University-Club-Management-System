@@ -82,6 +82,7 @@
 ## 6. Events
 - CRUD Events
 - Free/Paid events
+- List events for managed clubs (`GET /api/events/managed`)
 - Registration & Capacity limits
 - Registration deadline
 
@@ -214,6 +215,7 @@ University Club Management Backend/
 |--------|----------|--------|
 | POST | /api/events | Club Admin |
 | GET | /api/events | Public |
+| GET | /api/events/managed | Club Admin / Owner |
 | GET | /api/events/{id} | Public |
 | PATCH | /api/events/{id} | Club Admin / Owner |
 | DELETE | /api/events/{id} | Club Admin / Owner |
@@ -310,8 +312,8 @@ University Club Management Backend/
 2. Student initiates payment via `POST /api/payments/create` with event ID and amount.
 3. Backend creates a **Stripe Checkout Session** using `Stripe.net` SDK and returns the checkout URL.
 4. Student completes payment on Stripe Sandbox hosted checkout page.
-5. Stripe triggers `POST /api/payments/confirm` webhook, updating payment status to **Paid** and recording timestamp.
-6. Event registration is created with PaymentStatus = **Paid** and student receives confirmation notification.
+5. Client confirmation page (`/payment/success`) or Stripe webhook calls `POST /api/payments/confirm`, updating payment status to **Paid** and recording timestamp.
+6. Event registration is confirmed with PaymentStatus = **Paid** and student receives confirmation notification & payment history receipt (`GET /api/payments`).
 
 ## Notification & Broadcast Workflow
 

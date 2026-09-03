@@ -23,10 +23,16 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    const success = await login(email, password);
+    const result = await login(email, password);
     setLoading(false);
-    if (success) {
-      router.push('/dashboard');
+    if (result.success) {
+      if (result.role === 'ClubAdmin') {
+        router.push('/club-admin');
+      } else if (result.role === 'Admin' || (result.role as string) === 'SystemAdmin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 

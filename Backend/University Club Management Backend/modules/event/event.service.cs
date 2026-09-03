@@ -8,6 +8,7 @@ namespace University_Club_Management_Backend.Modules.EventModule;
 public interface IEventService
 {
     Task<ApiResponse<List<EventDto>>> GetEventsAsync(Guid? userId, string? search, Guid? clubId);
+    Task<ApiResponse<List<EventDto>>> GetManagedEventsAsync(Guid userId, bool isAdmin, string? search);
     Task<ApiResponse<EventDto>> GetEventByIdAsync(Guid eventId, Guid? userId);
     Task<ApiResponse<EventDto>> CreateEventAsync(Guid userId, CreateEventDto dto);
     Task<ApiResponse<bool>> DeleteEventAsync(Guid eventId, Guid userId, bool isAdmin);
@@ -42,6 +43,31 @@ public class EventService : IEventService
         var events = await query
             .Where(e => e.Club.Status == EClubStatus.Approved && e.Club.IsActive)
             .OrderBy(e => e.StartTime)
+            .ToListAsync();
+
+        return new ApiResponse<List<EventDto>> { Success = true, Data = events.Select(e => Map(e, userId)).ToList() };
+    }
+
+    public async Task<ApiResponse<List<EventDto>>> GetManagedEventsAsync(Guid userId, bool isAdmin, string? search)
+    {
+        var query = _dbContext.Events
+            .Include(e => e.Club)
+            .Include(e => e.Registrations)
+            .AsQueryable();
+
+        if (!isAdmin)
+        {
+            query = query.Where(e => e.Club.OwnerId == userId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(e => e.Title.ToLower().Contains(term) || (e.Location ?? "").ToLower().Contains(term));
+        }
+
+        var events = await query
+            .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
 
         return new ApiResponse<List<EventDto>> { Success = true, Data = events.Select(e => Map(e, userId)).ToList() };

@@ -256,6 +256,7 @@ Key features:
 |---|---|---|---|
 |POST|/api/events|Create new event (free or paid)|Club Admin|
 |GET|/api/events|List all active events (with filters)|Public|
+|GET|/api/events/managed|List events for managed clubs|Club Admin / Owner|
 |GET|/api/events/{id}|Get event details|Public|
 |PATCH|/api/events/{id}|Update event details|Club Admin / Owner|
 |DELETE|/api/events/{id}|Delete event|Club Admin / Owner|
@@ -311,7 +312,8 @@ Key features:
 3. User verification status is set to **Pending** (`IsVerified = false`).
 4. Admin reviews pending verifications at `/api/student-verification/pending` using the ID card photo.
 5. Admin approves or rejects the student registration.
-6. Upon approval, `IsVerified` becomes `true` and the student gains full access.
+6. Upon approval, `IsVerified` becomes `true` and the user logs in via `/api/auth/login`.
+7. Post-login redirection automatically routes users based on their assigned role: `ClubAdmin` -> `/club-admin`, `Admin`/`SystemAdmin` -> `/admin`, `Student` -> `/dashboard`.
 
 ---
 
@@ -320,5 +322,5 @@ Key features:
 1. Student initiates payment via `POST /api/payments/create` with amount and registration metadata.
 2. Backend initializes a **Stripe Checkout Session** using `Stripe.net` SDK and returns the checkout URL.
 3. Student completes payment on Stripe Sandbox hosted checkout page.
-4. Stripe triggers `POST /api/payments/confirm` webhook, updating payment status to `Paid` and recording timestamp.
-5. Registration & receipt history updated under `/api/payments`.
+4. Client success landing page (`/payment/success`) or Stripe webhook calls `POST /api/payments/confirm`, updating payment status to `Paid` and recording timestamp.
+5. Registration & itemized receipt history updated under `/api/payments` and displayed at `/dashboard/payments`.

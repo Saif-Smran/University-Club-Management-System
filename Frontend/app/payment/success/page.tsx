@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Ticket, FileText, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { eventService } from '@/services/api';
+import { eventService, paymentService } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { PaymentInvoiceModal } from '@/components/payment/PaymentInvoiceModal';
 import { Payment } from '@/types';
@@ -21,6 +21,7 @@ function PaymentSuccessContent() {
     const eventId = searchParams.get('eventId');
     const registrationId = searchParams.get('registrationId');
     if (eventId && user?.id) {
+      paymentService.confirmPayment({ eventId, userId: user.id, registrationId: registrationId || undefined });
       eventService.register(eventId, user.id).then(() => {
         toast.success('Payment successfully processed and event registration confirmed.');
       });

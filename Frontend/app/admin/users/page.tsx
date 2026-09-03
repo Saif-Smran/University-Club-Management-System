@@ -6,6 +6,7 @@ import { User, Role } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
 import { Users, Search, Trash2, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingState } from '@/components/common/LoadingState';
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -69,7 +70,7 @@ export default function UserManagementPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">Loading user accounts...</div>
+          <LoadingState message="Loading user accounts..." />
         ) : (
           <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
             <div className="overflow-x-auto">

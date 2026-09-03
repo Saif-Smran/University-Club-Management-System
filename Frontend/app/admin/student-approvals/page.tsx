@@ -7,6 +7,8 @@ import { Sidebar } from '@/components/common/Sidebar';
 import { ApprovalTable } from '@/components/admin/ApprovalTable';
 import { FileCheck } from 'lucide-react';
 
+import { LoadingState } from '@/components/common/LoadingState';
+
 export default function StudentApprovalsPage() {
   const [verifications, setVerifications] = useState<StudentVerification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export default function StudentApprovalsPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">Loading pending verifications...</div>
+          <LoadingState message="Loading pending verifications..." />
         ) : (
           <ApprovalTable verifications={verifications} onRefresh={fetchPendingVerifications} />
         )}

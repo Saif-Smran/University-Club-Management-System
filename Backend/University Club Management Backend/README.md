@@ -58,7 +58,7 @@ University Club Management Backend/
     ├── user/                                  # User management & profile endpoints
     ├── club/                                  # Club creation application & approval endpoints
     ├── membership/                            # Membership join, approve, reject, leave endpoints
-    ├── event/                                 # Event CRUD & registration endpoints
+    ├── event/                                 # Event CRUD, managed events (/api/events/managed) & registration endpoints
     ├── payment/                               # Stripe Checkout & webhook confirmation endpoints
     ├── notification/                          # In-app notifications & broadcast endpoints
     ├── announcement/                          # Club announcements & pin management endpoints

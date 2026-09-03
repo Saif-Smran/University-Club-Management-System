@@ -7,8 +7,12 @@ import { Club, Announcement, Event } from '@/types';
 import { Users, Calendar, Megaphone, CheckCircle2, Clock, ArrowLeft, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useAuth } from '@/context/AuthContext';
+import { LoadingState } from '@/components/common/LoadingState';
+
 export default function ClubDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
   const { clubId } = use(params);
+  const { user } = useAuth();
   const [club, setClub] = useState<Club | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -31,7 +35,7 @@ export default function ClubDetailPage({ params }: { params: Promise<{ clubId: s
       }
     }
     loadClubData();
-  }, [clubId]);
+  }, [clubId, user?.id]);
 
   const handleJoin = async () => {
     if (!club) return;
@@ -48,7 +52,11 @@ export default function ClubDetailPage({ params }: { params: Promise<{ clubId: s
   };
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto p-12 text-center text-xs text-muted-foreground">Loading club details...</div>;
+    return (
+      <div className="max-w-7xl mx-auto p-12">
+        <LoadingState message="Loading club details..." />
+      </div>
+    );
   }
 
   if (!club) {

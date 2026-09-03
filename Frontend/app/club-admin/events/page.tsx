@@ -5,17 +5,19 @@ import Link from 'next/link';
 import { eventService } from '@/services/api';
 import { Event } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
+import { useAuth } from '@/context/AuthContext';
 import { Calendar, PlusCircle, Trash2, Users, Ticket, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClubAdminEventsPage() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await eventService.getEvents();
+      const res = await eventService.getManagedEvents(undefined, user?.id);
       if (res.data) setEvents(res.data);
     } catch (e) {
     } finally {
@@ -25,7 +27,7 @@ export default function ClubAdminEventsPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [user?.id]);
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return;

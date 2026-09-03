@@ -45,8 +45,9 @@ public class PaymentController : ControllerBase
         using var reader = new StreamReader(Request.Body);
         var rawBody = await reader.ReadToEndAsync();
         var stripeSignature = Request.Headers["Stripe-Signature"].ToString();
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var response = await _paymentService.ConfirmPaymentAsync(rawBody, stripeSignature);
+        var response = await _paymentService.ConfirmPaymentAsync(rawBody, stripeSignature, userIdClaim);
         return Ok(response);
     }
 

@@ -7,7 +7,9 @@ import { Sidebar } from '@/components/common/Sidebar';
 import { Megaphone, PlusCircle, Pin } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function AnnouncementsPage() {
+import { LoadingState } from '@/components/common/LoadingState';
+
+export default function ClubAdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -125,7 +127,7 @@ export default function AnnouncementsPage() {
           <div className="lg:col-span-2 space-y-4">
             <h3 className="font-bold text-base text-foreground">Published Bulletins</h3>
             {loading ? (
-              <div className="p-8 text-center text-xs text-muted-foreground">Loading announcements...</div>
+              <LoadingState message="Loading announcements..." />
             ) : announcements.length === 0 ? (
               <div className="p-8 text-center bg-card rounded-2xl border border-border">No announcements posted yet.</div>
             ) : (

@@ -31,7 +31,7 @@ Frontend/
 │   ├── club-admin/                            # Club Admin portal (/club-admin)
 │   │   ├── clubs/                             # Manage clubs
 │   │   ├── memberships/                       # Membership approvals
-│   │   ├── events/                            # Event management
+│   │   ├── events/                            # Event management (filtering managed club events)
 │   │   ├── announcements/                     # Announcements
 │   │   └── broadcast/                         # Broadcast notifications
 │   ├── admin/                                 # System Admin portal (/admin)

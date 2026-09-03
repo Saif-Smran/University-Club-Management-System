@@ -32,12 +32,13 @@ The **University Club Management System (UCMS)** simplifies administrative overh
 
 ## ✨ Key Features
 
-- 🔒 **Secure Authentication**: Role-Based Access Control (RBAC) with JWT Bearer Tokens, Refresh Tokens, and Cookie handling.
+- 🔒 **Secure Authentication**: Role-Based Access Control (RBAC) with JWT Bearer Tokens, Refresh Tokens, Cookie handling, and role-based post-login redirection (`ClubAdmin` -> `/club-admin`, `Admin` -> `/admin`, `Student` -> `/dashboard`).
 - 🪪 **Student Identity Verification**: Students register by submitting their student ID number and uploading their student ID card photo directly to **Cloudinary CDN**.
 - 🛡️ **Admin Student Approval**: Student accounts remain in `Pending` verification state until reviewed and approved by Admins using the uploaded ID photo.
 - 🏛️ **Club Creation Application & Admin Approval**: Users can apply to form a new club with description and logo image upload. Admins review and approve/reject club creation requests (auto-promoting applicant to ClubAdmin upon approval).
 - 🤝 **Club Memberships**: Students can apply to join active clubs and leave clubs. Club admins approve or reject requests with feedback.
-- 💳 **Stripe Sandbox Payments**: Integration with Stripe Checkout Sessions (`Stripe.net`) and webhook confirmations for paid event registrations and payment history lookup.
+- 📅 **Club Events Management**: Public event catalog for students and dedicated managed events endpoint (`/api/events/managed`) for Club Admins to view and manage only events created by their own clubs.
+- 💳 **Stripe Sandbox Payments**: Integration with Stripe Checkout Sessions (`Stripe.net`), confirmation callbacks, paid event registrations, and itemized payment history lookup (`/dashboard/payments`).
 - 🔔 **In-App Notifications**: Real-time notification feed, unread count badges, mark as read, deletion, and club-wide broadcasts sent by Club Admins to all members.
 - 📢 **Announcements**: Pinned posts and bulletin management.
 - 📊 **Tailored Dashboard APIs**: Customized analytics endpoints for Students, Club Admins, and System Admins.

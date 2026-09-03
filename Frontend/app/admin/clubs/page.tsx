@@ -7,6 +7,8 @@ import { Sidebar } from '@/components/common/Sidebar';
 import { Compass, CheckCircle2, XCircle, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { LoadingState } from '@/components/common/LoadingState';
+
 export default function AdminClubsPage() {
   const [pendingClubs, setPendingClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function AdminClubsPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">Loading pending club applications...</div>
+          <LoadingState message="Loading pending club applications..." />
         ) : pendingClubs.length === 0 ? (
           <div className="p-12 text-center bg-card rounded-2xl border border-border">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />

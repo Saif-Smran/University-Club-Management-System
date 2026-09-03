@@ -6,6 +6,7 @@ import { eventService } from '@/services/api';
 import { EventRegistration } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
 import { Users, CheckCircle2, ArrowLeft, Ticket } from 'lucide-react';
+import { LoadingState } from '@/components/common/LoadingState';
 
 export default function EventParticipantsPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
@@ -41,7 +42,7 @@ export default function EventParticipantsPage({ params }: { params: Promise<{ ev
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">Loading participants...</div>
+          <LoadingState message="Loading participants..." />
         ) : participants.length === 0 ? (
           <div className="p-12 text-center bg-card rounded-2xl border border-border">
             <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />

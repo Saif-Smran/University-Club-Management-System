@@ -185,12 +185,15 @@ Displays
 /login
 ```
 
-Contains
-
 - Email
 - Password
 - Remember Me
 - Forgot Password
+
+Post-Login Redirection Rules:
+- **ClubAdmin**: Automatically redirected to Club Executive Portal (`/club-admin`)
+- **Admin / SystemAdmin**: Automatically redirected to System Admin Portal (`/admin`)
+- **Student**: Automatically redirected to Student Portal (`/dashboard`)
 
 ---
 
@@ -312,13 +315,15 @@ Displays
 /dashboard/payments
 ```
 
+Displays itemized event payment receipts and finance ledger for the authenticated user (retrieved via `GET /api/payments`). Upon returning from Stripe Sandbox checkout (`/payment/success`), payments are confirmed and stored in the user's payment ledger.
+
 Displays
 
-- Transaction ID
-- Amount
-- Event
-- Date
-- Status & Stripe Receipt Link
+- Invoice Reference & Transaction ID
+- Event Title & Date
+- Amount & Currency
+- Payment Gateway (Stripe Sandbox)
+- Status (Paid/Confirmed) & Receipt Link / Modal Invoice
 
 ---
 
@@ -384,6 +389,8 @@ Actions
 ```
 /club-admin/events
 ```
+
+Displays and manages events created specifically by the logged-in Club Admin's managed clubs (retrieved via `GET /api/events/managed`). Supports event creation, participant viewing, and event deletion.
 
 CRUD
 
