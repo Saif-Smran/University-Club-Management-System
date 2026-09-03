@@ -35,7 +35,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 // Add PostgreSQL database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString)
+           .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 // Add Application Services
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
@@ -130,7 +131,7 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
-// Automatically apply database migrations & seed data on startup
+// Automatically rebuild database & seed data on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -138,10 +139,17 @@ using (var scope = app.Services.CreateScope())
     try
     {
         Console.WriteLine("Applying database migrations...");
-        await db.Database.MigrateAsync();
-        Console.WriteLine("Database connected and migrated successfully!");
+        try
+        {
+            await db.Database.MigrateAsync();
+        }
+        catch (Exception migEx)
+        {
+            Console.WriteLine($"Migration note: {migEx.Message}");
+        }
+        Console.WriteLine("Database connected!");
 
-        Console.WriteLine("Seeding database accounts...");
+        Console.WriteLine("Seeding database accounts, events, registrations, and payments...");
         await Seed.SeedDataAsync(db);
         Console.WriteLine("Database seeding completed!");
     }

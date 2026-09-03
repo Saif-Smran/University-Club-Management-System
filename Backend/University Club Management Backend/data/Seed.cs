@@ -134,7 +134,7 @@ public static class Seed
             {
                 Id = Guid.NewGuid(),
                 UserId = student1.Id,
-                StudentId = student1.StudentId,
+                StudentId = student1.StudentId ?? "2023-1-60-001",
                 DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card1.jpg",
                 Status = EStudentVerificationStatus.Approved,
                 ApprovedAt = DateTime.UtcNow,
@@ -145,7 +145,7 @@ public static class Seed
             {
                 Id = Guid.NewGuid(),
                 UserId = student2.Id,
-                StudentId = student2.StudentId,
+                StudentId = student2.StudentId ?? "2023-1-60-002",
                 DocumentPath = "https://res.cloudinary.com/demo/image/upload/sample_id_card2.jpg",
                 Status = EStudentVerificationStatus.Pending,
                 CreatedAt = DateTime.UtcNow
@@ -209,18 +209,6 @@ public static class Seed
             new Club
             {
                 Id = Guid.NewGuid(),
-                Name = "Photography Club",
-                Description = "A community for visual arts and photography enthusiasts.",
-                Category = "Arts",
-                OwnerId = student1.Id,
-                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_photo_logo.png",
-                Status = EClubStatus.Pending,
-                IsActive = false,
-                CreatedAt = DateTime.UtcNow
-            },
-            new Club
-            {
-                Id = Guid.NewGuid(),
                 Name = "Arts and Performance Society",
                 Description = "Connecting students through theatre, music, dance, and live performance.",
                 Category = "Arts",
@@ -273,6 +261,18 @@ public static class Seed
                 ApprovedAt = DateTime.UtcNow,
                 ApprovedBy = adminUser.Id,
                 CreatedAt = DateTime.UtcNow
+            },
+            new Club
+            {
+                Id = Guid.NewGuid(),
+                Name = "Photography Club",
+                Description = "A community for visual arts and photography enthusiasts.",
+                Category = "Arts",
+                OwnerId = student1.Id,
+                LogoUrl = "https://res.cloudinary.com/demo/image/upload/sample_photo_logo.png",
+                Status = EClubStatus.Pending,
+                IsActive = false,
+                CreatedAt = DateTime.UtcNow
             }
         };
 
@@ -302,6 +302,8 @@ public static class Seed
 
         // 4. Memberships
         var computerClub = clubMap["Computer Club"];
+        var roboticsClub = clubMap["Robotics Club"];
+        var artsClub = clubMap["Arts and Performance Society"];
 
         var seedMemberships = new[]
         {
@@ -311,8 +313,34 @@ public static class Seed
                 UserId = student1.Id,
                 ClubId = computerClub.Id,
                 Status = "Approved",
-                AppliedAt = DateTime.UtcNow,
-                ApprovedAt = DateTime.UtcNow
+                AppliedAt = DateTime.UtcNow.AddDays(-10),
+                ApprovedAt = DateTime.UtcNow.AddDays(-10)
+            },
+            new Membership
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                ClubId = roboticsClub.Id,
+                Status = "Approved",
+                AppliedAt = DateTime.UtcNow.AddDays(-8),
+                ApprovedAt = DateTime.UtcNow.AddDays(-8)
+            },
+            new Membership
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                ClubId = artsClub.Id,
+                Status = "Approved",
+                AppliedAt = DateTime.UtcNow.AddDays(-5),
+                ApprovedAt = DateTime.UtcNow.AddDays(-5)
+            },
+            new Membership
+            {
+                Id = Guid.NewGuid(),
+                UserId = student2.Id,
+                ClubId = computerClub.Id,
+                Status = "Pending",
+                AppliedAt = DateTime.UtcNow.AddDays(-1)
             }
         };
 
@@ -345,11 +373,11 @@ public static class Seed
                 Type = "Free",
                 Price = 0,
                 Capacity = 100,
-                RegisteredCount = 0,
+                RegisteredCount = 1,
                 StartTime = DateTime.UtcNow.AddDays(7),
                 EndTime = DateTime.UtcNow.AddDays(8),
                 Location = "Main Campus Auditorium",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow.AddDays(-5)
             },
             new Event
             {
@@ -360,16 +388,16 @@ public static class Seed
                 Type = "Free",
                 Price = 0,
                 Capacity = 80,
-                RegisteredCount = 0,
+                RegisteredCount = 1,
                 StartTime = DateTime.UtcNow.AddDays(10),
                 EndTime = DateTime.UtcNow.AddDays(10).AddHours(2),
                 Location = "Computer Science Lab 204",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow.AddDays(-4)
             },
             new Event
             {
                 Id = Guid.NewGuid(),
-                ClubId = clubMap["Robotics Club"].Id,
+                ClubId = roboticsClub.Id,
                 Title = "Robotics Build Day",
                 Description = "A hands-on free build day for students interested in sensors and autonomous systems.",
                 Type = "Free",
@@ -379,22 +407,22 @@ public static class Seed
                 StartTime = DateTime.UtcNow.AddDays(14),
                 EndTime = DateTime.UtcNow.AddDays(14).AddHours(6),
                 Location = "Engineering Workshop",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow.AddDays(-3)
             },
             new Event
             {
                 Id = Guid.NewGuid(),
-                ClubId = clubMap["Arts and Performance Society"].Id,
+                ClubId = artsClub.Id,
                 Title = "Campus Music Night",
                 Description = "An evening of live performances by university student artists.",
                 Type = "Paid",
                 Price = 8.00m,
                 Capacity = 250,
-                RegisteredCount = 0,
+                RegisteredCount = 1,
                 StartTime = DateTime.UtcNow.AddDays(18),
                 EndTime = DateTime.UtcNow.AddDays(18).AddHours(3),
                 Location = "University Open-Air Theatre",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow.AddDays(-2)
             },
             new Event
             {
@@ -405,11 +433,11 @@ public static class Seed
                 Type = "Paid",
                 Price = 12.50m,
                 Capacity = 120,
-                RegisteredCount = 0,
+                RegisteredCount = 1,
                 StartTime = DateTime.UtcNow.AddDays(21),
                 EndTime = DateTime.UtcNow.AddDays(21).AddHours(3),
                 Location = "Business Faculty Conference Hall",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow.AddDays(-1)
             },
             new Event
             {
@@ -443,14 +471,21 @@ public static class Seed
             }
         };
 
+        var eventMap = new Dictionary<string, Event>();
         bool eventsAdded = false;
+
         foreach (var seedEvent in seedEvents)
         {
-            var exists = await context.Events.AnyAsync(e => e.Title == seedEvent.Title && e.ClubId == seedEvent.ClubId);
-            if (!exists)
+            var existingEvent = await context.Events.FirstOrDefaultAsync(e => e.Title == seedEvent.Title && e.ClubId == seedEvent.ClubId);
+            if (existingEvent == null)
             {
                 context.Events.Add(seedEvent);
+                eventMap[seedEvent.Title] = seedEvent;
                 eventsAdded = true;
+            }
+            else
+            {
+                eventMap[seedEvent.Title] = existingEvent;
             }
         }
 
@@ -460,7 +495,128 @@ public static class Seed
             anyDataAdded = true;
         }
 
-        // 6. Announcements
+        // 6. Event Registrations (4 Registrations for John Doe)
+        var hackathonEvt = eventMap["Annual Hackathon 2026"];
+        var openSourceEvt = eventMap["Introduction to Open Source"];
+        var musicEvt = eventMap["Campus Music Night"];
+        var pitchEvt = eventMap["Startup Pitch Masterclass"];
+        var debateEvt = eventMap["Interfaculty Debate Finals"];
+
+        var seedRegistrations = new[]
+        {
+            new EventRegistration
+            {
+                Id = Guid.NewGuid(),
+                EventId = hackathonEvt.Id,
+                UserId = student1.Id,
+                RegisteredAt = DateTime.UtcNow.AddDays(-3),
+                IsCheckedIn = false
+            },
+            new EventRegistration
+            {
+                Id = Guid.NewGuid(),
+                EventId = openSourceEvt.Id,
+                UserId = student1.Id,
+                RegisteredAt = DateTime.UtcNow.AddDays(-2),
+                IsCheckedIn = false
+            },
+            new EventRegistration
+            {
+                Id = Guid.NewGuid(),
+                EventId = musicEvt.Id,
+                UserId = student1.Id,
+                RegisteredAt = DateTime.UtcNow.AddDays(-1),
+                IsCheckedIn = false
+            },
+            new EventRegistration
+            {
+                Id = Guid.NewGuid(),
+                EventId = pitchEvt.Id,
+                UserId = student1.Id,
+                RegisteredAt = DateTime.UtcNow,
+                IsCheckedIn = false
+            }
+        };
+
+        bool registrationsAdded = false;
+        foreach (var reg in seedRegistrations)
+        {
+            var exists = await context.EventRegistrations.AnyAsync(r => r.EventId == reg.EventId && r.UserId == reg.UserId);
+            if (!exists)
+            {
+                context.EventRegistrations.Add(reg);
+                registrationsAdded = true;
+            }
+        }
+
+        if (registrationsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
+
+        // 7. Payments (3 Payments for John Doe)
+        var seedPayments = new[]
+        {
+            new Payment
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                EventId = musicEvt.Id,
+                Amount = 8.00m,
+                Currency = "USD",
+                Status = PaymentStatus.Paid,
+                SessionId = "cs_test_music_night_101",
+                PaymentMethod = "Stripe Sandbox",
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                PaidAt = DateTime.UtcNow.AddDays(-1)
+            },
+            new Payment
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                EventId = pitchEvt.Id,
+                Amount = 12.50m,
+                Currency = "USD",
+                Status = PaymentStatus.Paid,
+                SessionId = "cs_test_pitch_masterclass_102",
+                PaymentMethod = "Stripe Sandbox",
+                CreatedAt = DateTime.UtcNow.AddHours(-12),
+                PaidAt = DateTime.UtcNow.AddHours(-12)
+            },
+            new Payment
+            {
+                Id = Guid.NewGuid(),
+                UserId = student1.Id,
+                EventId = debateEvt.Id,
+                Amount = 5.00m,
+                Currency = "USD",
+                Status = PaymentStatus.Paid,
+                SessionId = "cs_test_debate_finals_103",
+                PaymentMethod = "Stripe Sandbox",
+                CreatedAt = DateTime.UtcNow.AddHours(-2),
+                PaidAt = DateTime.UtcNow.AddHours(-2)
+            }
+        };
+
+        bool paymentsAdded = false;
+        foreach (var pay in seedPayments)
+        {
+            var exists = await context.Payments.AnyAsync(p => p.UserId == pay.UserId && p.EventId == pay.EventId);
+            if (!exists)
+            {
+                context.Payments.Add(pay);
+                paymentsAdded = true;
+            }
+        }
+
+        if (paymentsAdded)
+        {
+            await context.SaveChangesAsync();
+            anyDataAdded = true;
+        }
+
+        // 8. Announcements
         var seedAnnouncements = new[]
         {
             new Announcement
@@ -495,7 +651,7 @@ public static class Seed
         // Output summary message
         if (anyDataAdded)
         {
-            Console.WriteLine("seed data has been add in the db");
+            Console.WriteLine("seed data has been added in the db");
         }
         else
         {
@@ -503,5 +659,3 @@ public static class Seed
         }
     }
 }
-
-
