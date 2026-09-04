@@ -2,13 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { clubService, membershipService } from '@/services/api';
 import { Club } from '@/types';
 import { Sidebar } from '@/components/common/Sidebar';
 import { Users, PlusCircle, LogOut, CheckCircle2, Clock, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MyClubsPage() {
+  const router = useRouter();
+  const { user, role, isLoading: authLoading } = useAuth();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -43,8 +47,28 @@ export default function MyClubsPage() {
     }
   };
 
+  const handleOpenApplyModal = () => {
+    if (authLoading || !user) {
+      router.push('/login');
+      return;
+    }
+    if (role !== 'Student') {
+      toast.error('Only logged-in students can apply to create a club');
+      return;
+    }
+    setShowApplyModal(true);
+  };
+
   const handleApplyNewClub = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authLoading || !user) {
+      router.push('/login');
+      return;
+    }
+    if (role !== 'Student') {
+      toast.error('Only logged-in students can apply to create a club');
+      return;
+    }
     if (!name || !description) {
       toast.error('Please enter club name and description');
       return;
@@ -81,7 +105,7 @@ export default function MyClubsPage() {
           </div>
 
           <button
-            onClick={() => setShowApplyModal(true)}
+            onClick={handleOpenApplyModal}
             className="px-4 py-2.5 rounded-xl text-xs font-bold bg-secondary text-secondary-foreground hover:opacity-95 shadow-md transition-all flex items-center gap-2"
           >
             <PlusCircle className="w-4 h-4" />

@@ -2,14 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { clubService } from '@/services/api';
 import { Club } from '@/types';
 import { ClubCard } from '@/components/clubs/ClubCard';
 import { Search, Filter, PlusCircle, Compass } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const CATEGORIES = ['All', 'Technology', 'Arts & Culture', 'Business', 'Social Work', 'Sports'];
 
 export default function ClubsPage() {
+  const router = useRouter();
+  const { user, role, isLoading: authLoading } = useAuth();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -32,6 +37,18 @@ export default function ClubsPage() {
     fetchClubs();
   }, [search, selectedCategory]);
 
+  const handleApplyForClub = () => {
+    if (authLoading || !user) {
+      router.push('/login');
+      return;
+    }
+    if (role !== 'Student') {
+      toast.error('Only logged-in students can apply to create a club');
+      return;
+    }
+    router.push('/dashboard/my-clubs');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Header */}
@@ -49,6 +66,10 @@ export default function ClubsPage() {
 
         <Link
           href="/dashboard/my-clubs"
+          onClick={(event) => {
+            event.preventDefault();
+            handleApplyForClub();
+          }}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:opacity-95 shadow-md transition-all self-start md:self-auto"
         >
           <PlusCircle className="w-4 h-4 text-secondary-container" />
