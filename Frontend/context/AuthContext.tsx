@@ -62,9 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.success(`Welcome back, ${authData.user.fullName}!`);
         return { success: true, role: authData.user.role };
       }
+      toast.error(res.message || 'Email or password is wrong');
       return { success: false };
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Login failed');
+      toast.error(err?.response?.data?.message || 'Email or password is wrong');
       return { success: false };
     } finally {
       setIsLoading(false);

@@ -236,7 +236,7 @@ export function PaymentInvoiceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-6 overflow-hidden print:p-0 print:bg-white print:static print:inset-auto">
       {/* Global CSS Print Rules */}
       <style>{`
         @media print {
@@ -266,7 +266,7 @@ export function PaymentInvoiceModal({
 
       <div 
         id="printable-invoice"
-        className="relative w-full max-w-2xl bg-card border border-border/80 rounded-3xl shadow-2xl overflow-hidden transition-all my-8"
+        className="relative w-full max-w-2xl max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-3rem)] bg-card border border-border/80 rounded-3xl shadow-2xl overflow-y-auto transition-all my-3 sm:my-8 overscroll-contain print:max-h-none print:overflow-visible"
       >
         {/* Header Ribbon / Status Banner */}
         <div className="relative bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8">

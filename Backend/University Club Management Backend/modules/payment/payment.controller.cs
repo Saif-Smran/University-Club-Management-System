@@ -70,6 +70,24 @@ public class PaymentController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMyPaymentsFromToken()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new ApiResponse<List<PaymentDto>>
+            {
+                Success = false,
+                Message = "Unauthorized user access."
+            });
+        }
+
+        var response = await _paymentService.GetMyPaymentsAsync(userId);
+        return Ok(response);
+    }
+
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPaymentById(Guid id)
     {

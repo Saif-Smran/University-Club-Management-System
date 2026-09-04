@@ -15,45 +15,6 @@ import {
   EventRegistration,
 } from '@/types';
 
-// Helper to get local event registrations for current user
-function getLocalRegisteredEventIds(userId?: string): Set<string> {
-  const registeredIds = new Set<string>();
-  if (typeof window !== 'undefined' && userId) {
-    const saved = localStorage.getItem('mockEventRegistrations');
-    if (saved) {
-      try {
-        const list: string[] = JSON.parse(saved);
-        list.forEach((reg) => {
-          if (reg.includes(':')) {
-            const parts = reg.split(':');
-            if (parts[0] === userId && parts[1]) {
-              registeredIds.add(parts[1]);
-            }
-          }
-        });
-      } catch {}
-    }
-  }
-  return registeredIds;
-}
-
-// Helper to get local payment records for current user
-function getLocalPayments(userId?: string): Payment[] {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('mockPaymentsList');
-    if (saved) {
-      try {
-        const list: Payment[] = JSON.parse(saved);
-        if (userId) {
-          return list.filter((p) => p && p.userId === userId);
-        }
-        return list;
-      } catch {}
-    }
-  }
-  return [];
-}
-
 export const authService = {
   login: async (credentials: { email: string; password: string }) => {
     try {
@@ -372,17 +333,7 @@ export const eventService = {
   getEvents: async (params?: { search?: string; clubId?: string }, currentUserId?: string) => {
     try {
       const response = await apiClient.get('/events', { params });
-      let events: Event[] = response.data?.data || [];
-      if (currentUserId) {
-        const localRegs = getLocalRegisteredEventIds(currentUserId);
-        events = events.map((evt) => {
-          if (localRegs.has(evt.id)) {
-            return { ...evt, isRegistered: true };
-          }
-          return evt;
-        });
-      }
-      return { ...response.data, data: events } as ApiResponse<Event[]>;
+      return response.data as ApiResponse<Event[]>;
     } catch {
       return { success: true, data: [] };
     }
@@ -400,14 +351,7 @@ export const eventService = {
   getEventById: async (eventId: string, currentUserId?: string): Promise<ApiResponse<Event>> => {
     try {
       const response = await apiClient.get(`/events/${eventId}`);
-      let evt = response.data?.data;
-      if (evt && currentUserId) {
-        const localRegs = getLocalRegisteredEventIds(currentUserId);
-        if (localRegs.has(evt.id)) {
-          evt = { ...evt, isRegistered: true };
-        }
-      }
-      return { ...response.data, data: evt } as ApiResponse<Event>;
+      return response.data as ApiResponse<Event>;
     } catch {
       return { success: false, message: 'Event not found', data: undefined } as unknown as ApiResponse<Event>;
     }
@@ -435,34 +379,20 @@ export const eventService = {
   },
 
   register: async (eventId: string, userId?: string) => {
-    if (userId) {
-      const saved = localStorage.getItem('mockEventRegistrations');
-      const set = new Set<string>(saved ? JSON.parse(saved) : []);
-      set.add(`${userId}:${eventId}`);
-      localStorage.setItem('mockEventRegistrations', JSON.stringify([...set]));
-    }
     try {
       const response = await apiClient.post(`/events/${eventId}/register`);
       return response.data;
-    } catch {
-      return { success: true, message: 'Registered successfully', data: { eventId, userId } };
+    } catch (err: any) {
+      return { success: false, message: err?.response?.data?.message || 'Registration failed' };
     }
   },
 
   unregister: async (eventId: string, userId?: string) => {
-    if (userId) {
-      const saved = localStorage.getItem('mockEventRegistrations');
-      if (saved) {
-        const set = new Set<string>(JSON.parse(saved));
-        set.delete(`${userId}:${eventId}`);
-        localStorage.setItem('mockEventRegistrations', JSON.stringify([...set]));
-      }
-    }
     try {
       const response = await apiClient.delete(`/events/${eventId}/register`);
       return response.data;
-    } catch {
-      return { success: true, message: 'Registration removed successfully', data: { eventId, userId } };
+    } catch (err: any) {
+      return { success: false, message: err?.response?.data?.message || 'Unregistration failed' };
     }
   },
 
@@ -498,41 +428,6 @@ export const paymentService = {
   },
 
   confirmPayment: async (payload: { eventId?: string; userId?: string; registrationId?: string; paymentId?: string; amount?: number }) => {
-    if (payload.userId && payload.eventId) {
-      let eventTitle = 'Campus Event Ticket';
-      let amount = payload.amount || 15.00;
-      try {
-        const evtRes = await apiClient.get(`/events/${payload.eventId}`);
-        if (evtRes.data?.data) {
-          eventTitle = evtRes.data.data.title || eventTitle;
-          amount = evtRes.data.data.price ?? amount;
-        }
-      } catch {}
-
-      const saved = localStorage.getItem('mockPaymentsList');
-      const list: Payment[] = saved ? JSON.parse(saved) : [];
-      const newPayment: Payment = {
-        id: payload.paymentId || payload.registrationId || 'pay_' + Math.random().toString(36).substring(2, 10),
-        userId: payload.userId,
-        userName: 'Student User',
-        eventId: payload.eventId,
-        eventTitle: eventTitle,
-        amount: amount,
-        currency: 'usd',
-        status: 'Paid',
-        sessionId: 'cs_test_' + Math.random().toString(36).substring(2, 12),
-        paymentMethod: 'Stripe Sandbox (Card ending in 4242)',
-        createdAt: new Date().toISOString(),
-        paidAt: new Date().toISOString(),
-      };
-      const existingIdx = list.findIndex((p) => p.eventId === payload.eventId && p.userId === payload.userId);
-      if (existingIdx >= 0) {
-        list[existingIdx] = { ...list[existingIdx], status: 'Paid', paidAt: new Date().toISOString(), eventTitle: eventTitle };
-      } else {
-        list.unshift(newPayment);
-      }
-      localStorage.setItem('mockPaymentsList', JSON.stringify(list));
-    }
     try {
       const response = await apiClient.post('/payments/confirm', payload);
       return response.data;
@@ -541,21 +436,12 @@ export const paymentService = {
     }
   },
 
-  getHistory: async (currentUserId?: string) => {
+  getHistory: async () => {
     try {
-      const response = await apiClient.get('/payments');
-      let payments: Payment[] = response.data?.data || [];
-      const localPayments = getLocalPayments(currentUserId);
-      const combined = [...payments];
-      for (const lp of localPayments) {
-        if (!combined.some((p) => p.id === lp.id || (p.eventId === lp.eventId && p.userId === lp.userId))) {
-          combined.push(lp);
-        }
-      }
-      return { success: true, data: combined } as ApiResponse<Payment[]>;
+      const response = await apiClient.get('/payments/me');
+      return response.data as ApiResponse<Payment[]>;
     } catch {
-      const localPayments = getLocalPayments(currentUserId);
-      return { success: true, data: localPayments } as ApiResponse<Payment[]>;
+      return { success: true, data: [] };
     }
   },
 
@@ -741,28 +627,15 @@ export const dashboardService = {
   },
 
   getStudentStats: async (userId?: string): Promise<ApiResponse<StudentDashboardStats>> => {
-    const localRegs = getLocalRegisteredEventIds(userId);
     try {
       const response = await apiClient.get('/dashboard/student');
-      const backendData = response.data?.data;
-      const count = Math.max(backendData?.upcomingRegisteredEventsCount || 0, localRegs.size);
-      return {
-        ...response.data,
-        data: {
-          joinedClubsCount: backendData?.joinedClubsCount || 0,
-          upcomingRegisteredEventsCount: count,
-          pendingClubApplicationsCount: backendData?.pendingClubApplicationsCount || 0,
-          isStudentVerified: backendData?.isStudentVerified || false,
-          verificationStatus: backendData?.verificationStatus || 'Pending',
-          joinedClubs: backendData?.joinedClubs || [],
-        },
-      };
+      return response.data as ApiResponse<StudentDashboardStats>;
     } catch {
       return {
         success: true,
         data: {
           joinedClubsCount: 0,
-          upcomingRegisteredEventsCount: localRegs.size,
+          upcomingRegisteredEventsCount: 0,
           pendingClubApplicationsCount: 0,
           isStudentVerified: false,
           verificationStatus: 'Pending',

@@ -30,7 +30,7 @@ export default function PaymentsPage() {
     async function loadPayments() {
       setLoading(true);
       try {
-        const res = await paymentService.getHistory(user?.id);
+        const res = await paymentService.getHistory();
         if (Array.isArray(res?.data)) {
           setPayments(res.data);
         } else {
